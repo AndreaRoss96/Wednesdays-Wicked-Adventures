@@ -1,0 +1,34 @@
+<!-- components/park-cards.html -->
+<div class="park-card">
+  <!-- DEBUG: Mostra os dados do parque -->
+  <!-- 
+  <div style="display: none;">
+    Debug: 
+    ID: {{ park.id if park.id else 'NO ID' }},
+    Name: {{ park.name }},
+    Image Path: {{ park.image_path }}
+  </div>
+  -->
+  
+  <!-- Container do logo com fundo laranja -->
+  <div class="park-logo">
+    <img src="{{ url_for('static', filename=park.image_path) }}" 
+         alt="{{ park.name }} logo" 
+         class="park-logo-image"
+         onerror="console.error('❌ Image failed:', this.src)">
+  </div>
+  
+  <div class="short-info">
+    <h3 class="park-name">{{ park.name }}</h3>
+    <p class="park-text">{{ park.short }}</p>
+    
+<!-- Container dos botões -->
+    <div class="park-buttons">
+      <!-- Botão Discover More com parâmetro -->
+      {% include "components/cta-button-secondary.html" with context %}
+      
+      <!-- Botão Book Tickets -->
+      {% include "components/cta-button.html" %}
+    </div>
+  </div>
+</div>

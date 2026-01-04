@@ -1,0 +1,15 @@
+<nav class="navbar">
+  <!-- Lado esquerdo: logo + texto -->
+  <a href="{{ url_for('main.home') }}" class="navbar-brand">
+    <div class="logo-container">
+      <img src="{{ url_for('static', filename='images/Ghost01.svg') }}" alt="Logo" class="logo">
+    </div>
+    <span class="brand-text">Wednesday's Wicked Adventures</span>
+  </a>
+
+  <!-- Login -->
+  <div class="navbar-end">
+    <a href="{{ url_for('main.login') }}" class="account-link">Login</a>
+          <img src="{{ url_for('static', filename='images/Login_icon.svg') }}" alt="Login_icon" class="Login_icon">
+  </div>
+</nav>

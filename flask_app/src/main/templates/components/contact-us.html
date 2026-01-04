@@ -1,0 +1,41 @@
+<div class="contact-banner-space" id="contact">
+  <div class="contact-wrapper">
+    <!-- Logo SVG grande NO LADO ESQUERDO -->
+    <img src="{{ url_for('static', filename='images/Ghost01.svg') }}" 
+         alt="Wednesday's Wicked Adventures Logo" 
+         class="contact-logo">
+    
+    <!-- Conteúdo do contact NO MEIO -->
+    <div class="contact-content">
+      <h2 class="contact-title">Contact Us</h2>
+      <p class="contact-text">
+        For inquiries regarding tickets, attractions, or experiences, please contact us.
+      </p>
+    </div>
+    
+    <!-- Formulário NO LADO DIREITO -->
+    <!-- ⭐ MUDANÇA AQUI: Adicionei id="contactForm" -->
+    <form method="POST" action="{{ url_for('main.contact') }}" class="contact-form" id="contactForm">
+      <input type="text" name="name" class="contact-input" placeholder="Your Name" required>
+      <input type="email" name="email" class="contact-input" placeholder="Your Email" required>
+      <textarea name="message" class="contact-textarea" placeholder="Your Message" rows="3" required></textarea>
+      
+      <!-- Mensagens de feedback -->
+      {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+          <div class="flash-messages">
+            {% for category, message in messages %}
+              <div class="flash-message {{ category }}">
+                {{ message }}
+              </div>
+            {% endfor %}
+          </div>
+        {% endif %}
+      {% endwith %}
+
+      <div class="form-buttons">
+        {% include "components/cta-button-send.html" %}
+      </div>
+    </form>
+  </div>
+</div>
