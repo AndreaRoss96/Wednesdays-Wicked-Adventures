@@ -17,8 +17,6 @@ def create_app(config_name="development"):
     app.config.from_object(config[config_name])
     config[config_name].init_app(app)
 
-    db.init_app(app)
-
     ## Enforce FK in SQLite3 ##
     @event.listens_for(Engine, "connect")
     def set_sqlite_pragma(dbapi_connection, connection_record):
@@ -26,6 +24,19 @@ def create_app(config_name="development"):
             cursor = dbapi_connection.cursor()
             cursor.execute("PRAGMA foreign_keys=ON;")
             cursor.close()
+
+    db.init_app(app)
+
+    # create db locally and seed data (roles and parks) 
+    if config_name == "development":
+        from app import models
+        with app.app_context():
+            db.drop_all()
+            db.create_all()
+
+            from app.seed_data.data import seed_dev_data
+            seed_dev_data()
+
 
     # Configure Flask-Login
     login_manager = LoginManager()
