@@ -1,3 +1,7 @@
+"""
+Pytest configuration and definition for fixtures
+"""
+
 import pytest
 import os
 import sys
@@ -85,6 +89,8 @@ def db_session(app):
 def authenticated_client(client, app):
     """
         Fixture that provides an authenticated client
+
+        Takes regular user -> add session cookie -> returns logged in client
     """
     with app.app_context():
         user = User.query.filter_by(email='test@example.com').first()

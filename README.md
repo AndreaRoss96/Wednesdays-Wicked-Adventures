@@ -12,3 +12,9 @@ Flask
 flask-sqlalchemy 
 PyMySQL
 flask-login
+
+## Testing packages
+pytest==7.4.3
+pytest-cov==4.1.0
+pytest-flask==1.3.0
+coverage==7.3.2
