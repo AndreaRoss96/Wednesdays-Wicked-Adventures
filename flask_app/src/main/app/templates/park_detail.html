@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h1>{{ park.name }}</h1>
+
+{% if park.location %}
+<p><strong>Location:</strong> {{ park.location }}</p>
+{% endif %}
+
+{% if park.description %}
+<p><strong>Description:</strong> {{ park.description }}</p>
+{% endif %}
+
+{% if park.capacity %}
+<p><strong>Capacity:</strong> {{ park.capacity }}</p>
+{% endif %}
+
+<a href="{{ url_for('main.booking') }}">
+    <button>Book tickets</button>
+</a>
+
+<br><br>
+<a href="{{ url_for('main.index') }}">← Back to parks</a>
+{% endblock %}

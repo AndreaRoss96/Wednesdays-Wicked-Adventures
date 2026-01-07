@@ -8,7 +8,13 @@ main = Blueprint('main', __name__)
 
 @main.route('/')
 def index():
-    return render_template('index.html')
+    parks = Park.query.all()
+    return render_template('index.html', parks=parks)
+
+@main.route('/parks/<int:park_id>')
+def park_detail(park_id):
+    park = Park.query.get_or_404(park_id)
+    return render_template('park_detail.html', park=park)
 
 @main.route('/profile')
 @login_required

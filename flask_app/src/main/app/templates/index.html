@@ -1,10 +1,33 @@
 {% extends "base.html" %}
 
 {% block content %}
-<h1 class="title">
-    Wednesdays-Wicked-Adventures Booking System
-</h1>
-<h2 class="subtitle">
-    Book your ticket today!
-</h2>
+<section class="section">
+    <div class="container">
+        <h1 class="title">Wednesdays-Wicked-Adventures Booking System</h1>
+        <h2 class="title">Available Parks</h2>
+
+        <table class="table is-bordered is-striped is-hoverable is-fullwidth">
+            <thead>
+                <tr>
+                    <th>Park Name</th>
+                    <th>Location</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for park in parks %}
+                <tr>
+                    <td>{{ park.name }}</td>
+                    <td>{{ park.location }}</td>
+                    <td>
+                        <a href="{{ url_for('main.park_detail', park_id=park.park_id) }}" class="button is-small is-link">
+                            View Park
+                        </a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</section>
 {% endblock %}
