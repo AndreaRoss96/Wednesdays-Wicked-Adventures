@@ -1,0 +1,37 @@
+<!-- templates/components/auth-card.html -->
+<div class="auth-card-wrapper">
+    <div class="auth-card card">
+        <!-- Cabeçalho -->
+        <div class="auth-card-header">
+            {% if icon %}
+            <div class="auth-card-icon">
+                {{ icon|safe }}
+            </div>
+            {% endif %}
+            
+            <h2 class="auth-card-title">{{ title }}</h2>
+            
+            {% if subtitle %}
+            <p class="auth-card-subtitle">{{ subtitle }}</p>
+            {% endif %}
+        </div>
+
+        <!-- Conteúdo -->
+        <div class="auth-card-content">
+            {{ content|safe }}
+        </div>
+
+        <!-- Links -->
+        {% if links %}
+        <div class="auth-card-links">
+            {% for link in links %}
+            <a href="{{ link.url }}" class="auth-card-link {% if link.primary %}primary{% endif %}">
+                {{ link.text }}
+            </a>
+            {% endfor %}
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+{% endblock %}
