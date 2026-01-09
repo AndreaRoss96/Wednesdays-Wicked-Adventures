@@ -1,43 +1,60 @@
-{% extends "base.html" %}
+{% extends "layouts/base.html" %}
+{% from "macros.html" import auth_card %}
+
+{% block title %}Sign Up - Wednesday's Wicked Adventures{% endblock %}
 
 {% block content %}
-<div class="column is-4 is-offset-4">
-    <h3 class="title">Sign Up</h3>
-    <div class="box">
+<div class="register-page">
+    <div class="container">
+
+        <!-- Flash messages for registration errors -->
         {% with messages = get_flashed_messages() %}
-        {% if messages %}
-        <div class="notification is-danger">
-            {{ messages[0] }}. Go to <a href="{{ url_for('login.login') }}">login page</a>.
-        </div>
-        {% endif %}
+            {% if messages %}
+                <div class="flash-messages">
+                    {% for message in messages %}
+                        <div class="auth-message error">
+                            <!-- Error icon -->
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
+                                <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/>
+                            </svg>
+                            <span>{{ message }}</span>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% endif %}
         {% endwith %}
-            <form method="POST" action="/register">
-                <div class="field">
-                    <div class="control">
-                        <input class="input is-large" type="email" name="email" placeholder="Email" autofocus="">
-                    </div>
-                </div>
-
-                <div class="field">
-                    <div class="control">
-                        <input class="input is-large" type="text" name="name" placeholder="Name" autofocus="">
-                    </div>
-                </div>
-
-                  <div class="field">
-                    <div class="control">
-                        <input class="input is-large" type="text" name="last_name" placeholder="Last Name" autofocus="">
-                    </div>
-                </div>
-
-                <div class="field">
-                    <div class="control">
-                        <input class="input is-large" type="password" name="password" placeholder="Password">
-                    </div>
-                </div>
-
-                <button class="button is-block is-info is-large is-fullwidth">Sign Up</button>
-            </form>
+        
+        <div class="register-layout">
+            <div class="register-form">
+                {{ auth_card(
+                    title="Create Your Account",
+                    subtitle="Fill in your details to sign up",
+                    content='
+                    <form class="auth-form" method="POST" action="' ~ url_for("login.register") ~ '">
+                        <div class="auth-form-group">
+                            <label class="auth-form-label" for="name">First Name</label>
+                            <input type="text" id="name" name="name" class="auth-form-input" placeholder="Your first name" required>
+                        </div>
+                        <div class="auth-form-group">
+                            <label class="auth-form-label" for="last_name">Last Name</label>
+                            <input type="text" id="last_name" name="last_name" class="auth-form-input" placeholder="Your last name" required>
+                        </div>
+                        <div class="auth-form-group">
+                            <label class="auth-form-label" for="email">Email</label>
+                            <input type="email" id="email" name="email" class="auth-form-input" placeholder="your@email.com" required>
+                        </div>
+                        <div class="auth-form-group">
+                            <label class="auth-form-label" for="password">Password</label>
+                            <input type="password" id="password" name="password" class="auth-form-input" placeholder="Create a password" required>
+                        </div>
+                        <button type="submit" class="button auth-submit-button">Create Account</button>
+                    </form>',
+                    links=[
+                        {"url": url_for('login.login'), "text": "Already have an account? Sign In", "primary": true}
+                    ]
+                ) }}
+            </div>
+        </div>
     </div>
 </div>
 {% endblock %}

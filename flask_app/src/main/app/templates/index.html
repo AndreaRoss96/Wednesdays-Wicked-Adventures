@@ -1,10 +1,52 @@
-{% extends "base.html" %}
+{% extends "layouts/base.html" %}
+
+{% block title %}Home - Wednesday's Wicked Adventures{% endblock %}
 
 {% block content %}
-<h1 class="title">
-    Wednesdays-Wicked-Adventures Booking System
-</h1>
-<h2 class="subtitle">
-    Book your ticket today!
-</h2>
+
+  <!-- Rollercoaster Banner -->
+  <div class="rollercoaster-banner">
+    <div class="rollercoaster-content">
+      <h1 class="rollercoaster-title">Risky Rollercoaster</h1>
+      <p class="rollercoaster-description">Face your fear at full speed</p>
+      <p class="rollercoaster-description">Book if you dare!</p>
+
+      <!-- Ticket Button -->
+      {% include "components/cta-button.html" %}
+    </div>
+  </div>
+
+  <!-- Parks Carousel Section -->
+  <section class="parks-section">
+    <h2 class="section-title">Our Adventure Parks</h2>
+    
+    {% if parks %}
+      <div class="parks-carousel-container">
+        <!-- Left Arrow -->
+        <button class="carousel-arrow carousel-arrow-left" aria-label="Previous parks">
+          ←
+        </button>
+        
+        <!-- Carousel -->
+        <div class="parks-carousel">
+          <div class="parks-track">
+            {% for park in parks %}
+              {% with %}
+                {% set park = park %}
+                {% include "components/park-cards.html" %}
+              {% endwith %}
+            {% endfor %}
+          </div>
+        </div>
+        
+        <!-- Right Arrow -->
+        <button class="carousel-arrow carousel-arrow-right" aria-label="Next parks">
+          →
+        </button>
+      </div>
+    {% else %}
+      <p class="no-parks">No parks available at the moment.</p>
+    {% endif %}
+  </section>
+
 {% endblock %}
