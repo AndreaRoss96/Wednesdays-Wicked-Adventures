@@ -1,7 +1,7 @@
 {% extends "layouts/base.html" %}
 {% from "macros.html" import auth_card %}
 
-{% block title %}Sign Up - Wednesday's Wicked Adventures{% endblock %}
+{% block title %}Register - Wednesday's Wicked Adventures{% endblock %}
 
 {% block content %}
 <div class="register-page">
@@ -27,7 +27,7 @@
             <div class="register-form">
                 {% call auth_card(
                     title="Create Your Account",
-                    subtitle="Fill in your details to sign up",
+                    subtitle="Complete the form to create your account",
                     links=[
                         {"url": url_for('login.login'), "text": "Already have an account? Sign In", "primary": true}
                     ]

@@ -28,7 +28,8 @@ def seed_dev_data():
         • Enchanted Forest Walk - Discover hidden magical creatures
         """,
         short_description='Step into a world of spells. Feel the magic all around you.',
-        slug='park-1-dublin'
+        slug='park-1-dublin',
+        image_path='images/parks/witches/hat.png',
     )
     park2 = Park(
         name='Spider Park',
@@ -43,7 +44,8 @@ def seed_dev_data():
         • Venom Drop Ride - Free fall through a spider-infested shaft
         """,
         short_description='Enter the web of fear and thrill. Face the spiders if you dare.',
-         slug='park-2-london'
+        slug='park-2-london',
+        image_path='images/parks/spider/spider.png'
     )
     park3 = Park(
         name='Haunted House',
@@ -58,7 +60,8 @@ def seed_dev_data():
         • Séance Room - Experience a simulated supernatural encounter
         """,
         short_description='Walk among the restless dead. Discover the shadows that await.',
-        slug='park-3-berlin'
+        slug='park-3-berlin',
+        image_path='images/parks/haunted/skull.png'
     )
 
     db.session.add_all([park1, park2, park3])
