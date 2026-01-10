@@ -1,52 +1,128 @@
-{% extends "base.html" %}
+{% extends "layouts/base.html" %}
 
 {% block content %}
-<h1>{{ park.name }}</h1>
+<!-- Image banner -->
+<section class="park-banner">
+  {% if park.folder is defined and park.folder %}
+    <img src="{{ url_for('static', filename='images/parks/' + park.folder + '/banner.png') }}" 
+         alt="{{ park.name }} Banner" 
+         class="banner-image">
+  {% else %}
+    <!-- Fallback -->
+    <div class="banner-fallback">
+      <h2>{{ park.name }}</h2>
+      <p>{{ park.location if park.location is defined else 'Adventure Park' }}</p>
+      <p style="margin-top: 1rem; font-size: 1rem; opacity: 0.6;">
+        (Banner image coming soon)
+      </p>
+    </div>
+  {% endif %}
+</section>
 
-{% if park.location %}
-<p><strong>Location:</strong> {{ park.location }}</p>
-{% endif %}
-
-{% if park.description %}
-<p><strong>Description:</strong> {{ park.description }}</p>
-{% endif %}
-
-{% if park.folder %}
-<p><strong>Folder:</strong> {{ park.folder }}</p>
-{% endif %}
-
-{% if park.hours %}
-<p><strong>Hours:</strong> {{ park.hours }}</p>
-{% endif %}
-
-{% if park.short_description %}
-<p><strong>Short Description:</strong> {{ park.short_description }}</p>
-{% endif %}
-
-{% if park.difficulty %}
-<p><strong>Difficulty:</strong> {{ park.difficulty }}</p>
-{% endif %}
-
-{% if park.min_age %}
-<p><strong>Min Age:</strong> {{ park.min_age }}</p>
-{% endif %}
-
-{% if park.price %}
-<p><strong>Price:</strong> {{ park.price }}</p>
-{% endif %}
-
-{% if park.wait_time %}
-<p><strong>Wait Time:</strong> {{ park.wait_time }}</p>
-{% endif %}
-
-{% if park.height_requirement %}
-<p><strong>Height Requirement:</strong> {{ park.height_requirement }}</p>
-{% endif %}
-
-<a href="{{ url_for('main.booking') }}">
-    <button>Book tickets</button>
-</a>
-
-<br><br>
-<a href="{{ url_for('main.index') }}">← Back to parks</a>
+<!-- Main Content Container -->
+<div class="park-main-container">
+  
+  <!-- LEFT COLUMN: Park Content -->
+  <div class="park-content-column">
+    <div class="park-content-container">
+      <h1>{{ park.name }}</h1>
+      
+      <!-- Description if full_description doesn't exist -->
+      <p>{{ park.full_description if park.full_description is defined else park.description }}</p>
+      
+      <!-- Basic Information FALLBACKS -->
+      <div class="park-info">
+        <h3>Park Information</h3>
+        
+        {% if park.hours is defined and park.hours %}
+          <p><strong>Hours:</strong> {{ park.hours }}</p>
+        {% endif %}
+        
+        {% if park.difficulty is defined and park.difficulty %}
+          <p><strong>Difficulty:</strong> {{ park.difficulty }}</p>
+        {% else %}
+          <p><strong>Difficulty:</strong> Moderate</p>
+        {% endif %}
+        
+        {% if park.min_age is defined and park.min_age %}
+          <p><strong>Minimum Age:</strong> {{ park.min_age }}</p>
+        {% else %}
+          <p><strong>Minimum Age:</strong> 12+</p>
+        {% endif %}
+        
+        {% if park.price is defined and park.price %}
+          <p><strong>Price:</strong> {{ park.price }}</p>
+        {% else %}
+          <p><strong>Price:</strong> Starting at $49.99</p>
+        {% endif %}
+        
+        {% if park.wait_time is defined and park.wait_time %}
+          <p><strong>Wait Time:</strong> {{ park.wait_time }}</p>
+        {% else %}
+          <p><strong>Wait Time:</strong> 30-60 minutes</p>
+        {% endif %}
+        
+        {% if park.height_requirement is defined and park.height_requirement %}
+          <p><strong>Height Requirement:</strong> {{ park.height_requirement }}</p>
+        {% else %}
+          <p><strong>Height Requirement:</strong> 48" (1.2m)</p>
+        {% endif %}
+        
+        {% if park.location is defined %}
+          <p><strong>Location:</strong> {{ park.location }}</p>
+        {% endif %}
+        
+        <!-- Reserve Button -->
+        <a href="{{ url_for('main.new_booking') }}" class="cta-button">
+          <span class="cta-text">Book {{ park.name }} Tickets</span>
+          <span class="cta-arrow">→</span>
+        </a>
+      </div>
+    </div>
+  </div>
+  
+  <!-- RIGHT COLUMN: Gallery (ONLY IF park.folder EXISTS) -->
+  <div class="park-gallery-column">
+    <div class="gallery-container">
+      <div class="gallery-main">
+        {% if park.folder is defined and park.folder %}
+          <!-- Main Image -->
+          <div class="main-image-container">
+            <div class="image-frame">
+              <img id="gallery-main-img" 
+                  src="{{ url_for('static', filename='images/parks/' + park.folder + '/gallery/1.jpg') }}" 
+                  alt="{{ park.name }}">
+            </div>
+          </div>
+          
+          <!-- Thumbnails -->
+          <div class="thumbnail-strip">
+            <button class="nav-btn prev-btn" aria-label="Previous">‹</button>
+            
+            <div class="thumbnails">
+              {% for i in range(1, 5) %}
+                {% set img_path = 'images/parks/' + park.folder + '/gallery/' ~ i ~ '.jpg' %}
+                {% set thumb_path = 'images/parks/' + park.folder + '/gallery/thumb' ~ i ~ '.jpg' %}
+                <div class="thumb-item {% if i == 1 %}active{% endif %}" 
+                    data-index="{{ i }}"
+                    data-src="{{ url_for('static', filename=img_path) }}">
+                  <img src="{{ url_for('static', filename=thumb_path) }}" 
+                      alt="Thumbnail {{ i }}">
+                </div>
+              {% endfor %}
+            </div>
+            
+            <button class="nav-btn next-btn" aria-label="Next">›</button>
+          </div>
+        {% else %}
+          <!-- Message when no gallery exists -->
+          <div class="no-gallery">
+            <p>Gallery coming soon</p>
+            <p>Check back for photos of {{ park.name }}!</p>
+          </div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</div>
 {% endblock %}

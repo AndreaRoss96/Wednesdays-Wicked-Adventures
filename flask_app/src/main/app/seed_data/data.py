@@ -30,6 +30,13 @@ def seed_dev_data():
         short_description='Step into a world of spells. Feel the magic all around you.',
         slug='park-1-dublin',
         image_path='images/parks/witches/hat.png',
+        folder='witches',
+        hours='10:00 AM - 8:00 PM',
+        difficulty='Moderate',
+        min_age=10,
+        price='Starting at $39.99',
+        wait_time='20-40 minutes',
+        height_requirement='42" (1.07m)',
     )
     park2 = Park(
         name='Spider Park',
@@ -45,7 +52,14 @@ def seed_dev_data():
         """,
         short_description='Enter the web of fear and thrill. Face the spiders if you dare.',
         slug='park-2-london',
-        image_path='images/parks/spider/spider.png'
+        image_path='images/parks/spider/spider.png',
+        folder='spider',
+        hours='9:00 AM - 10:00 PM',
+        difficulty='Hard',
+        min_age=14,
+        price='Starting at $54.99',
+        wait_time='45-75 minutes',
+        height_requirement='54" (1.37m)',
     )
     park3 = Park(
         name='Haunted House',
@@ -61,7 +75,14 @@ def seed_dev_data():
         """,
         short_description='Walk among the restless dead. Discover the shadows that await.',
         slug='park-3-berlin',
-        image_path='images/parks/haunted/skull.png'
+        image_path='images/parks/haunted/skull.png',
+        folder='haunted',
+        hours='6:00 PM - 2:00 AM',
+        difficulty='Easy',
+        min_age=8,
+        price='Starting at $29.99',
+        wait_time='15-30 minutes',
+        height_requirement='None',
     )
 
     db.session.add_all([park1, park2, park3])

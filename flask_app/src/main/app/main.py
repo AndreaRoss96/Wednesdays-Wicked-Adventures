@@ -48,7 +48,7 @@ def booking():
         db.session.add(booking)
         db.session.commit()
 
-        return redirect(url_for('main.view_bookings'))
+        return redirect(url_for('main.profile'))
 
     parks = Park.query.all()
-    return render_template('booking.html', parks=parks)
+    return redirect(url_for('main.profile'))

@@ -1,43 +1,53 @@
-{% extends "base.html" %}
+{% extends "layouts/base.html" %}
+{% from "macros.html" import auth_card %}
+
+{% block title %}Login - Wednesday's Wicked Adventures{% endblock %}
 
 {% block content %}
-<div class="column is-4 is-offset-4">
-    <h3 class="title">Login</h3>
-    <div class="box">
+<div class="login-page">
+    <div class="container">
+        
+        <!-- Flash messages -->
         {% with messages = get_flashed_messages() %}
-        {% if messages %}
-        <div class="notification is-danger">
-            {{ messages[0] }}
-        </div>
-        {% endif %}
+            {% if messages %}
+                <div class="flash-messages">
+                    {% for message in messages %}
+                        <div class="auth-message error">
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
+                                <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/>
+                            </svg>
+                            <span>{{ message }}</span>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% endif %}
         {% endwith %}
-        <!--div class="box has-background-warning-light"-->
-        <form method="POST" action="/login">
-            <div class="field">
-                <div class="control">
-                    <input class="input is-large" type="email" name="email" placeholder="Your Email" autofocus="">
-                    <!--input class="input is-large is-warning" type="email" name="email" placeholder="Your Email"
-                            autofocus=""-->
-                </div>
-            </div>
-            <div class="field">
-                <div class="control">
-                    <input class="input is-large" type="password" name="password" placeholder="Your Password">
-                    <!--input class="input is-large is-warning" type="password" name="password"
-                            placeholder="Your Password"-->
-                </div>
-            </div>
-            <button class="button is-block is-info is-large is-fullwidth">
-                <!--button class="button is-warning is-large is-fullwidth"-->
-                Login</button>
-        </form>
-        <!-- Forgot password link -->
-        <div class="has-text-centered" style="margin-top: 10px;">
-            <a href="{{ url_for('login.forgot_password') }}" class="button is-block is-warning is-large is-fullwidth">
-                Forgot your password?
-            </a>
+        
+        <div class="login-form">
+            {% call auth_card(
+                title="Login",
+                subtitle="Welcome back! Please enter your details",
+                links=[
+                    {"url": url_for('login.forgot_password'), "text": "Forgot your password?", "primary": false},
+                    {"url": url_for('login.register'), "text": "First time here? Sign Up", "primary": true}
+                ]
+            ) %}
+            
+                <form class="auth-form" method="POST" action="{{ url_for('login.login') }}" id="loginForm">
+                    <div class="auth-form-group">
+                        <label class="auth-form-label" for="email">Email</label>
+                        <input type="email" id="email" name="email" class="auth-form-input" placeholder="your@email.com" required>
+                    </div>
+                    <div class="auth-form-group">
+                        <label class="auth-form-label" for="password">Password</label>
+                        <input type="password" id="password" name="password" class="auth-form-input" placeholder="Enter your password" required>
+                    </div>
+                    <button type="submit" class="button auth-submit-button" id="loginSubmitButton">Sign In</button>
+                </form>
+            
+            {% endcall %}
         </div>
+        
     </div>
-</div>
 </div>
 {% endblock %}

@@ -1,19 +1,54 @@
-{% extends "base.html" %}
+{% extends "layouts/base.html" %}
 
 {% block content %}
-<h1 class="title">
-  Welcome, {{ name }}!
-</h1>
+<div class="profile-container">
+    <!-- Header -->
+    <div class="profile-header">
+        <h1 class="title">Welcome, {{ name }}!</h1>
+        <p class="subtitle">Manage your park bookings and adventures</p>
+    </div>
 
-<div class="buttons is-centered mt-5">
-  <!-- View bookings -->
-  <a href="{{ url_for('main.view_bookings') }}" class="button is-warning is-large">
-    View My Bookings
-  </a>
+    <!-- Quick Actions -->
+    <div class="profile-actions">
+        <a href="{{ url_for('main.new_booking') }}" class="button is-primary">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M12 5v14M5 12h14"/>
+            </svg>
+            New Booking
+        </a>
+    </div>
 
-  <!-- New booking -->
-  <a href="{{ url_for('main.new_booking') }}" class="button is-danger is-large">
-    Make a Booking
-  </a>
+    <!-- Bookings Section -->
+    <div class="bookings-section">
+        <div class="section-header">
+            <h2 class="section-title">My Bookings</h2>
+            <div class="bookings-stats">
+                <span class="stat">
+                    <strong>{{ current_user.bookings|length }}</strong> total bookings
+                </span>
+            </div>
+        </div>
+
+        <!-- Componente de bookings -->
+        <div class="bookings-container">
+            {% if current_user.bookings %}
+              {% with bookings=current_user.bookings %}
+                  {% include 'components/bookings.html' %}
+        {% endwith %}
+            {% else %}
+                <div class="empty-bookings">
+                    <p>No bookings yet</p>
+                    <a href="{{ url_for('main.new_booking') }}" class="button is-primary">
+                        Make Your First Booking
+                    </a>
+                </div>
+            {% endif %}
+        </div>
+    </div>
 </div>
+
+<script>
+    // Define today for upcoming calculations
+    const today = new Date().toISOString().split('T')[0];
+</script>
 {% endblock %}
