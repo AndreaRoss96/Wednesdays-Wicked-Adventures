@@ -15,25 +15,53 @@ def seed_dev_data():
 
     # Parks
     park1 = Park(
-        name='PARK 1',
+        name='Witches\' Park',
         location='Dublin',
-        description='Dublin Park 1',
-        short_description='Park in Dublin',
-        slug='park-1-dublin'
+        description="""
+        Welcome to the Witches' Park, where magic comes alive! 
+        Experience spell-binding attractions, potion-making workshops, 
+        and encounter mystical creatures in our enchanted forest.
+        
+        • Spell Casting Arena - Test your magical abilities
+        • Potion Brewing Lab - Create your own magical elixirs
+        • Witch Training Academy - Learn spells from master witches
+        • Enchanted Forest Walk - Discover hidden magical creatures
+        """,
+        short_description='Step into a world of spells. Feel the magic all around you.',
+        slug='park-1-dublin',
+        image_path='images/parks/witches/hat.png',
     )
     park2 = Park(
-        name='PARK 2',
+        name='Spider Park',
         location='London',
-        description='London Park 2',
-        short_description='Park in London',
-         slug='park-2-london'
+        description="""
+        Dare to enter our arachnid-infested domain! Navigate through giant webs, 
+        face enormous spiders, and experience the ultimate thrill in darkness.
+        
+        • Giant Web Maze - Navigate through intricate spider webs
+        • Spider Cavern - Face giant arachnids in their natural habitat
+        • Arachnid Alley - Walk through a corridor of crawling spiders
+        • Venom Drop Ride - Free fall through a spider-infested shaft
+        """,
+        short_description='Enter the web of fear and thrill. Face the spiders if you dare.',
+        slug='park-2-london',
+        image_path='images/parks/spider/spider.png'
     )
     park3 = Park(
-        name='PARK 3',
+        name='Haunted House',
         location='Berlin',
-        description='Berlin Park 3',
-        short_description='Park in Berlin',
-        slug='park-3-berlin'
+        description="""
+        The ancient manor holds dark secrets. Wander through haunted halls, 
+        encounter restless spirits, and uncover mysteries that chill to the bone.
+        
+        • Ghostly Galleries - Walk through portraits that come alive
+        • Crypt of Whispers - Hear the secrets of the departed
+        • Hall of Echoes - Where every step resonates with past tragedies
+        • Séance Room - Experience a simulated supernatural encounter
+        """,
+        short_description='Walk among the restless dead. Discover the shadows that await.',
+        slug='park-3-berlin',
+        image_path='images/parks/haunted/skull.png'
     )
 
     db.session.add_all([park1, park2, park3])

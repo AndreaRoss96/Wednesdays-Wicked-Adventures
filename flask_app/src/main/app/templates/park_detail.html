@@ -11,8 +11,36 @@
 <p><strong>Description:</strong> {{ park.description }}</p>
 {% endif %}
 
+{% if park.folder %}
+<p><strong>Folder:</strong> {{ park.folder }}</p>
+{% endif %}
+
+{% if park.hours %}
+<p><strong>Hours:</strong> {{ park.hours }}</p>
+{% endif %}
+
 {% if park.short_description %}
 <p><strong>Short Description:</strong> {{ park.short_description }}</p>
+{% endif %}
+
+{% if park.difficulty %}
+<p><strong>Difficulty:</strong> {{ park.difficulty }}</p>
+{% endif %}
+
+{% if park.min_age %}
+<p><strong>Min Age:</strong> {{ park.min_age }}</p>
+{% endif %}
+
+{% if park.price %}
+<p><strong>Price:</strong> {{ park.price }}</p>
+{% endif %}
+
+{% if park.wait_time %}
+<p><strong>Wait Time:</strong> {{ park.wait_time }}</p>
+{% endif %}
+
+{% if park.height_requirement %}
+<p><strong>Height Requirement:</strong> {{ park.height_requirement }}</p>
 {% endif %}
 
 <a href="{{ url_for('main.booking') }}">
