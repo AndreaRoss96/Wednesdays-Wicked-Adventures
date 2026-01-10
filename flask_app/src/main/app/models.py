@@ -46,6 +46,13 @@ class Park(db.Model):
     image_path = db.Column(db.String(200), default='images/parks/default.jpg')
     short_description = db.Column(db.String(80), nullable=False)
     slug = db.Column(db.String(100), nullable=False, unique=True)
+    folder = db.Column(db.String(50), default='')
+    hours = db.Column(db.String(100), default='9:00 AM - 10:00 PM')
+    difficulty = db.Column(db.String(50), default='Moderate')
+    min_age = db.Column(db.Integer, default=12)
+    price = db.Column(db.String(50), default='Starting at $49.99')
+    wait_time = db.Column(db.String(50), default='30-60 minutes')
+    height_requirement = db.Column(db.String(50), default='48" (1.2m)')
     bookings = db.relationship('Booking', backref='park')
     
 
@@ -57,8 +64,15 @@ class Park(db.Model):
             'description': self.description,
             'image_path': self.image_path,
             'short_description': self.short_description,
-            'slug': self.slug
-
+            'slug': self.slug,
+            'folder': self.folder,
+            'hours': self.hours, 
+            'difficulty':self.difficulty,
+            'min_age': self.min_age,
+            'price':self.price, 
+            'wait_time': self.wait_time,
+            'height_requirement': self.height_requirement
+ 
         }
 
 class Booking(db.Model):
