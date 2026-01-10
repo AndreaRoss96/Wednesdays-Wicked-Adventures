@@ -25,8 +25,8 @@
         
         <div class="login-form">
             {% call auth_card(
-                title="Sign In",
-                subtitle="Enter your account to continue",
+                title="Login",
+                subtitle="Welcome back! Please enter your details",
                 links=[
                     {"url": url_for('login.forgot_password'), "text": "Forgot your password?", "primary": false},
                     {"url": url_for('login.register'), "text": "First time here? Sign Up", "primary": true}
@@ -42,7 +42,7 @@
                         <label class="auth-form-label" for="password">Password</label>
                         <input type="password" id="password" name="password" class="auth-form-input" placeholder="Enter your password" required>
                     </div>
-                    <button type="submit" class="button auth-submit-button" id="loginSubmitButton">Register</button>
+                    <button type="submit" class="button auth-submit-button" id="loginSubmitButton">Sign In</button>
                 </form>
             
             {% endcall %}

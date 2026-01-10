@@ -10,16 +10,16 @@
   <!-- Dynamic Menu -->
   <div class="navbar-end">
     {% if current_user.is_authenticated %}
-      <!-- Logged in user -->
+      <!-- User Not logged -->
       <span class="welcome-text">Welcome, {{ current_user.name }}!</span>
       <a href="{{ url_for('main.profile') }}" class="account-link">Profile</a>
       <span class="separator">|</span>
       <a href="{{ url_for('login.logout') }}" class="account-link">Logout</a>
-      <img src="{{ url_for('static', filename='images/User_icon.svg') }}"
+      <img src="{{ url_for('static', filename='images/Login_icon.svg') }}"
            alt="User Icon"
            class="Login_icon">
     {% else %}
-      <!-- User NOT logged in -->
+      <!-- User Logged in -->
       <a href="{{ url_for('login.register') }}" class="account-link">Register</a>
       <span class="separator">|</span>
       <a href="{{ url_for('login.login') }}" class="account-link">Login</a>
