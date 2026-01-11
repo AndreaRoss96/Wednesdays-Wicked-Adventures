@@ -1258,6 +1258,16 @@ Park Page Styles
     accent-color: var(--accent-primary); /* Custom checkbox color */
 }
 
+.terms-link {
+    color: var(--brand-primary);
+    text-decoration: underline;
+    transition: opacity 0.2s ease;
+}
+
+.terms-link:hover {
+    opacity: 0.8;
+}
+
 /* =========================
    Auth Submit Button
 ========================= */
@@ -1813,3 +1823,79 @@ Profile Page Styles
             grid-template-columns: 1fr; /* Single column */
         }
     }
+/* =========================
+Health & Safety Guidelines Page
+========================= */
+.page-header {
+    text-align: center;
+    margin-bottom: 3rem;
+    padding-bottom: 1.5rem;
+    border-bottom: 2px solid var(--brand-primary);
+}
+
+.page-header h1 {
+    color: var(--brand-primary);
+    margin-bottom: 0.5rem;
+}
+
+.page-header .subtitle {
+    color: var(--text-muted);
+    font-size: 0.9rem;
+}
+
+.guidelines-content {
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 2rem;
+    background: var(--card-bg);
+    border-radius: 8px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+}
+
+.guideline-section {
+    margin-bottom: 2.5rem;
+}
+
+.guideline-section h2 {
+    color: var(--text-primary);
+    margin-bottom: 1rem;
+    font-size: 1.3rem;
+    border-left: 4px solid var(--brand-primary);
+    padding-left: 1rem;
+}
+
+.guideline-section ul {
+    list-style-type: none;
+    padding-left: 1.5rem;
+}
+
+.guideline-section li {
+    margin-bottom: 0.8rem;
+    position: relative;
+}
+
+.guideline-section li:before {
+    content: "•";
+    color: var(--brand-primary);
+    font-weight: bold;
+    position: absolute;
+    left: -1rem;
+}
+
+.acknowledgment-box {
+    margin-top: 3rem;
+    padding: 1.5rem;
+    background: var(--background-alt);
+    border-radius: 6px;
+    border-left: 4px solid var(--brand-primary);
+    text-align: center;
+}
+
+.acknowledgment-box p {
+    margin-bottom: 1.5rem;
+    font-style: italic;
+}
+
+.acknowledgment-box .btn {
+    min-width: 200px;
+}

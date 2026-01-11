@@ -52,3 +52,8 @@ def booking():
 
     parks = Park.query.all()
     return redirect(url_for('main.profile'))
+
+@main.route('/health-safety-guidelines')
+def health_safety_guidelines():
+    current_date = datetime.now()
+    return render_template('health_safety_guidelines.html', now=current_date)

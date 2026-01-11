@@ -1,0 +1,60 @@
+{% extends "layouts/base.html" %}
+
+{% block title %}Health & Safety Guidelines - Wednesday's Wicked Adventures{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="page-header">
+        <h1>Health & Safety Guidelines</h1>
+        <p class="subtitle">Last updated: {{ now.strftime('%B %d, %Y') }}</p>
+    </div>
+    
+    <div class="guidelines-content">
+        <section class="guideline-section">
+            <h2>1. General Safety</h2>
+            <ul>
+                <li>Follow all posted instructions and staff directions</li>
+                <li>Stay in designated visitor areas</li>
+                <li>Keep a safe distance from all wildlife</li>
+                <li>Do not feed or attempt to touch any animals</li>
+            </ul>
+        </section>
+        
+        <section class="guideline-section">
+            <h2>2. Health Considerations</h2>
+            <ul>
+                <li>Stay hydrated throughout your visit</li>
+                <li>Use sunscreen and protective clothing</li>
+                <li>Be aware of weather conditions and dress appropriately</li>
+                <li>Inform staff immediately if you feel unwell</li>
+                <li><strong>It is your responsibility to inform our staff about any pre-existing health conditions or medical concerns that may affect your participation in activities</strong></li>
+            </ul>
+        </section>
+        
+        <section class="guideline-section">
+            <h2>3. Adventure Activities</h2>
+            <ul>
+                <li>Participate only in activities appropriate for your fitness level</li>
+                <li>Use all safety equipment provided</li>
+                <li>Follow weight and height restrictions on rides</li>
+                <li>Secure all personal belongings during activities</li>
+            </ul>
+        </section>
+        
+        <section class="guideline-section">
+            <h2>4. Emergency Procedures</h2>
+            <ul>
+                <li>Locate emergency exits upon arrival</li>
+                <li>In case of emergency, follow staff instructions</li>
+                <li>Emergency contact number: (555) 123-HELP</li>
+                <li>First aid stations are marked on park maps</li>
+            </ul>
+        </section>
+        
+        <div class="acknowledgment-box">
+            <p>By booking a visit to Wednesday's Wicked Adventures, you acknowledge that you have read, understood, and agree to follow these guidelines.</p>
+            <a href="{{ url_for('main.new_booking') }}" class="btn btn-primary">Return to Booking</a>
+        </div>
+    </div>
+</div>
+{% endblock %}
