@@ -54,6 +54,7 @@ def booking():
     return redirect(url_for('main.profile'))
 
 @main.route('/health-safety-guidelines')
+@login_required
 def health_safety_guidelines():
     current_date = datetime.now()
     return render_template('health_safety_guidelines.html', now=current_date)

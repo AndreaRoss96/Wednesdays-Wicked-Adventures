@@ -1,4 +1,6 @@
 from flask_login import UserMixin
+from flask_admin.contrib.sqla import ModelView
+from flask_login import current_user
 from . import db
 
 class User(UserMixin,db.Model):
@@ -13,7 +15,13 @@ class User(UserMixin,db.Model):
 
     def get_id(self):
         return str(self.user_id)
-
+    
+    def has_role(self, role_name: str) -> bool:
+        return (
+            self.role is not None and
+            self.role.name == role_name
+        )
+    
     def to_json(self):
         return {
             'user_id': self.user_id,
@@ -93,3 +101,7 @@ class Booking(db.Model):
             'num_tickets': self.num_tickets,
             'health_safety':self.health_safety
         }
+
+class AppModelView(ModelView):
+    def is_accessible(self):
+        return (current_user.is_authenticated and current_user.has_role('admin'))

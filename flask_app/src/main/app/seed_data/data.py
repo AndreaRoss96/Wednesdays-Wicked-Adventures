@@ -1,5 +1,6 @@
 from app import db
-from app.models import Role, Park
+from app.models import User, Role, Park
+from werkzeug.security import generate_password_hash
 
 def seed_dev_data():
     # prevent duplicate seeding
@@ -11,6 +12,26 @@ def seed_dev_data():
     customer_role = Role(name="customer")
 
     db.session.add_all([admin_role, customer_role])
+    db.session.commit()
+
+    # Admin users
+    admin1 = User(
+        name="Admin",
+        last_name="One",
+        email="admin1@example.com",
+        password=generate_password_hash("admin123", method='pbkdf2:sha256'),
+        role=admin_role
+    )
+
+    admin2 = User(
+        name="Admin",
+        last_name="Two",
+        email="admin2@example.com",
+        password=generate_password_hash("admin123", method='pbkdf2:sha256'),
+        role=admin_role
+    )
+
+    db.session.add_all([admin1, admin2])
     db.session.commit()
 
     # Parks

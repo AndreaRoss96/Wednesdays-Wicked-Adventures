@@ -1,7 +1,7 @@
 from flask import Blueprint, render_template, request, redirect, url_for, flash
 from flask_login import login_user, logout_user, login_required
 from werkzeug.security import generate_password_hash, check_password_hash
-from .models import User
+from .models import User, Role
 from . import db
 
 auth_login = Blueprint('login', __name__)
@@ -21,7 +21,7 @@ def login_post():
         flash('Please check your login details and try again.')
         return redirect(url_for('login.login'))
 
-    login_user(user)
+    login_user(user, remember=False)
     return redirect(url_for('main.profile'))
 
 @auth_login.route('/forgot_password', methods=['GET', 'POST'])
@@ -60,9 +60,8 @@ def register_post():
         flash('This email address already exists! Please try again!')
         return redirect(url_for('login.register'))
 
-    # create and add new user to the database
-    # new_user = User(email=email, name=name, last_name=last_name, password=password, role_id=1)
-    new_user = User(email=email, name=name, last_name=last_name, role_id=1, password=generate_password_hash(password, method='pbkdf2:sha256'))
+    customer_role = Role.query.filter_by(name='customer').first()
+    new_user = User(email=email, name=name, last_name=last_name, role=customer_role, password=generate_password_hash(password, method='pbkdf2:sha256'))
     db.session.add(new_user)
     db.session.commit()
 
