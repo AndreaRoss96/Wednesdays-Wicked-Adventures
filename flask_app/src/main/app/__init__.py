@@ -27,7 +27,7 @@ def create_app(config_name="development"):
     db.init_app(app)
     config[config_name].init_app(app)
 
-    from .models import User, Role, Booking, Park, AppModelView
+    from .models import User, Role, Booking, Park, AppModelView, AppIndexView
     
     # Configure Flask-Login
     login_manager = LoginManager()
@@ -41,7 +41,7 @@ def create_app(config_name="development"):
         return db.session.get(User, int(user_id))
     
     # Flask-Admin
-    admin = Admin (app)
+    admin = Admin (app, name='Admin Panel', template_mode='bootstrap4', index_view=AppIndexView())
     admin.add_view(AppModelView(User, db.session))
     admin.add_view(AppModelView(Role, db.session))
     admin.add_view(AppModelView(Booking, db.session))
