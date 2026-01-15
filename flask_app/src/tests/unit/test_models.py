@@ -144,8 +144,18 @@ class TestParkModel:
         with app.app_context():
             park = Park(
                 name='Test Park',
-                location='Test Location',
-                description='Test Description'
+                location='Test City',
+                description='A test park description',
+                short_description='Short test desc',
+                slug='test-park',
+                image_path='images/test.png',
+                folder='test',
+                hours='9:00 AM - 6:00 PM',
+                difficulty='Easy',
+                min_age=5,
+                price='$25.00',
+                wait_time='10-20 minutes',
+                height_requirement='36" (0.9m)'
             )
             # Park attributes should match
             assert park.name == 'Test Park'

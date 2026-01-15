@@ -6,6 +6,12 @@ import pytest
 import os
 import sys
 import tempfile
+import warnings
+
+# Suppress SQLAlchemy deprecation warnings
+from sqlalchemy.exc import SADeprecationWarning
+warnings.filterwarnings("ignore", category=SADeprecationWarning)
+warnings.filterwarnings("ignore", category=DeprecationWarning)
 
 # Add the main directory to Python path
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', 'main'))
@@ -25,7 +31,7 @@ def app():
 
     test_config = {
         'TESTING': True,
-        'SQLALCHEMY_DATABASE_URI': f'sqlite:///{db_path}',
+        'SQLALCHEMY_DATABASE_URI': 'sqlite:///:memory:',
         'SQLALCHEMY_TRACK_MODIFICATIONS': False,
         'SECRET_KEY': 'test-secret-key',
         'WTF_CSRF_ENABLED': False  # Disable CSRF for testing
@@ -44,8 +50,6 @@ def app():
     with app.app_context():
         db.session.remove()
         db.drop_all()
-    os.close(db_fd)
-    os.unlink(db_path)
 
 @pytest.fixture(scope='function')
 def client(app):
@@ -128,12 +132,47 @@ def _create_test_data():
     park1 = Park(
         name='Leprechaun Park',
         location='Dublin',
-        description='Capital park'
+        description='Capital park',
+        short_description='Step into a world of spells',
+        slug='park-1-dublin',
+        image_path='images/parks/witches/hat.png',
+        folder='witches',
+        hours='10:00 AM - 8:00 PM',
+        difficulty='Moderate',
+        min_age=10,
+        price='Starting at $39.99',
+        wait_time='20-40 minutes',
+        height_requirement='42" (1.07m)'
     )
     park2 = Park(
         name='Paddy Park',
         location='Cork',
-        description='Real capital park'
+        description='Real capital park',
+        short_description='Enter the web of fear',
+        slug='park-2-Cork',
+        image_path='images/parks/spider/spider.png',
+        folder='spider',
+        hours='9:00 AM - 10:00 PM',
+        difficulty='Hard',
+        min_age=14,
+        price='Starting at $54.99',
+        wait_time='45-75 minutes',
+        height_requirement='54" (1.37m)'
+    )
+    park3 = Park(
+        name='Haunted House',
+        location='Galway',
+        description='Classic haunted manor experience',
+        short_description='Walk among the restless dead',
+        slug='park-3-Galway',
+        image_path='images/parks/haunted/skull.png',
+        folder='haunted',
+        hours='6:00 PM - 2:00 AM',
+        difficulty='Easy',
+        min_age=8,
+        price='Starting at $29.99',
+        wait_time='15-30 minutes',
+        height_requirement='None'
     )
     db.session.add(park1)
     db.session.add(park2)
