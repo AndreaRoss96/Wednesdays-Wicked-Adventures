@@ -40,7 +40,7 @@ class TestUserFlows:
         assert response.status_code == 200
         assert b'Flow' in response.data
 
-    def test_booking_creation_flow(self, authenticated_client, app):
+    def test_browse_parks_and_book_flow(self, authenticated_client, app):
         """
         Test: Login -> View Parks -> Create Booking -> View Bookings
 
@@ -48,15 +48,26 @@ class TestUserFlows:
         - creates a booking with valid data
         - verifies the booking appears in the user's bookings list.
         """
-        # 1. View new booking page to see available parks
-        response = authenticated_client.get('/booking/new')
+        # 1. Browse parks on homepage
+        response = authenticated_client.get('/')
         assert response.status_code == 200
-
-        # 2. Create booking
+        
+        # 2. View park details
         with app.app_context():
             from app.models import Park
             park = Park.query.first()
-
+            
+            response = authenticated_client.get(f'/parks/{park.park_id}')
+            assert response.status_code == 200
+            assert park.name.encode() in response.data
+        
+        # 3. Go to booking page
+        response = authenticated_client.get('/booking/new')
+        assert response.status_code == 200
+        
+        # 4. Create booking
+        with app.app_context():
+            park = Park.query.first()
             response = authenticated_client.post('/booking', data={
                 'park_id': park.park_id,
                 'date': '2026-10-20T14:00',
@@ -64,9 +75,36 @@ class TestUserFlows:
                 'health_safety': 'on'
             }, follow_redirects=True)
             assert response.status_code == 200
-
-        # 3. View bookings
+        
+        # 5. View bookings
         response = authenticated_client.get('/bookings')
+        assert response.status_code == 200
+    
+    def test_forgot_password_flow(self, client):
+        """
+        Test: Forgot Password -> Reset -> Login with New Password
+        """
+        # 1. Go to forgot password page
+        response = client.get('/forgot_password')
+        assert response.status_code == 200
+        
+        # 2. Reset password
+        response = client.post('/forgot_password', data={
+            'email': 'test@example.com',
+            'new_password': 'resetpass123'
+        }, follow_redirects=True)
+        assert response.status_code == 200
+        assert b'Password successfully updated' in response.data
+        
+        # 3. Login with new password
+        response = client.post('/login', data={
+            'email': 'test@example.com',
+            'password': 'resetpass123'
+        }, follow_redirects=True)
+        assert response.status_code == 200
+        
+        # 4. Verify can access profile
+        response = client.get('/profile')
         assert response.status_code == 200
 
     def test_multiple_bookings_flow(self, authenticated_client, app):
@@ -112,7 +150,7 @@ class TestUserFlows:
 
         for route in protected_routes:
             response = client.get(route)
-            assert response.status_code == 302  # Redirect
+            assert response.status_code == 302  # Redirection code
             assert '/login' in response.location
 
     def test_logout_and_access_flow(self, authenticated_client):
@@ -169,3 +207,4 @@ class TestUserFlows:
             users = User.query.filter_by(email='duplicate@example.com').all()
             assert len(users) == 1
             assert users[0].name == 'First'  # Original user should remain
+            
