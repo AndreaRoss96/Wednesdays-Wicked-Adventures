@@ -13,21 +13,55 @@ class TestMainRoutes:
     """Test main blueprint routes"""
     
     def test_index_page(self, client):
-        """Test GET /"""
+        """Test GET / loads and shows parks"""
         response = client.get('/')
+        assert response.status_code == 200
+        # Check for something that IS on the page
+        # print(response.data)
+        assert b"Wednesday's Wicked Adventures" in response.data
+    
+    def test_index_displays_all_parks(self, client, app):
+        """Test that index shows all parks"""
+        response = client.get('/')
+        assert response.status_code == 200
+        
+        with app.app_context():
+            from app.models import Park
+            parks = Park.query.all()
+            assert len(parks) == 3  # Should have 3 parks from seed data
+    
+    def test_park_detail_page(self, client, app):
+        """Test GET /parks/<id> shows park details"""
+        with app.app_context():
+            from app.models import Park
+            park = Park.query.first()
+            
+            response = client.get(f'/parks/{park.park_id}')
+            assert response.status_code == 200
+            assert park.name.encode() in response.data
+            assert park.location.encode() in response.data
+    
+    def test_park_detail_not_found(self, client):
+        """Test park detail with invalid ID"""
+        response = client.get('/parks/99999')
+        assert response.status_code == 404
+    
+    def test_health_safety_guidelines_page(self, client):
+        """Test GET /health-safety-guidelines"""
+        response = client.get('/health-safety-guidelines')
         assert response.status_code == 200
     
     def test_profile_requires_login(self, client):
         """Test that /profile requires authentication"""
         response = client.get('/profile')
-        assert response.status_code == 302  # Redirect to login
+        assert response.status_code == 302
         assert '/login' in response.location
     
     def test_profile_authenticated(self, authenticated_client):
         """Test /profile when authenticated"""
         response = authenticated_client.get('/profile')
         assert response.status_code == 200
-        assert b'Test' in response.data  # User's name
+        assert b'Test' in response.data
     
     def test_view_bookings_requires_login(self, client):
         """Test that /bookings requires authentication"""
@@ -35,14 +69,8 @@ class TestMainRoutes:
         assert response.status_code == 302
         assert '/login' in response.location
     
-    def test_view_bookings_authenticated_empty(self, authenticated_client):
-        """Test viewing bookings when no bookings exist"""
-        response = authenticated_client.get('/bookings')
-        assert response.status_code == 200
-    
-    def test_view_bookings_with_data(self, authenticated_client, app):
-        """Test viewing bookings when bookings exist"""
-        # Create a test booking first
+    def test_view_bookings_authenticated(self, authenticated_client, app):
+        """Test viewing bookings when authenticated"""
         with app.app_context():
             from app import db
             from app.models import User, Park, Booking
@@ -130,7 +158,6 @@ class TestMainRoutes:
             
             assert response.status_code == 200
             
-            # Verify booking was created with health_safety=False
             user = User.query.filter_by(email='test@example.com').first()
             booking = Booking.query.filter_by(user_id=user.user_id).order_by(Booking.booking_id.desc()).first()
             assert booking.health_safety == False

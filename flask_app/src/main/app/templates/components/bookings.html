@@ -1,0 +1,49 @@
+<!-- templates/components/bookings.html -->
+<!-- Componente puro - só a tabela de bookings -->
+
+<div class="bookings-table-component">
+    {% if bookings %}
+    <div class="table-responsive">
+        <table class="bookings-table">
+            <thead>
+                <tr>
+                    <th>Park</th>
+                    <th>Date</th>
+                    <th>Tickets</th>
+                    <th>Health Safety</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for booking in bookings %}
+                <tr>
+                    <td>
+                        <strong>{{ booking.park.name }}</strong>
+                        <div class="location">{{ booking.park.location }}</div>
+                    </td>
+                    <td>{{ booking.date.strftime("%Y-%m-%d") }}</td>
+                    <td>
+                        <span class="ticket-count">{{ booking.num_tickets }}</span>
+                    </td>
+                    <td>
+                        {% if booking.health_safety %}
+                        <span class="tag success">Yes</span>
+                        {% else %}
+                        <span class="tag">No</span>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <div class="empty-bookings">
+        <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+            <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/>
+            <polyline points="17 21 17 13 7 13 7 21"/>
+            <polyline points="7 3 7 8 15 8"/>
+        </svg>
+        <p>No bookings yet</p>
+    </div>
+    {% endif %}
+</div>

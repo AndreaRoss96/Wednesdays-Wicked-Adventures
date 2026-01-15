@@ -8,7 +8,13 @@ main = Blueprint('main', __name__)
 
 @main.route('/')
 def index():
-    return render_template('index.html')
+    parks = Park.query.all()
+    return render_template('index.html', parks=parks)
+
+@main.route('/parks/<int:park_id>')
+def park_detail(park_id):
+    park = Park.query.get_or_404(park_id)
+    return render_template('park_detail.html', park=park)
 
 @main.route('/profile')
 @login_required
@@ -42,7 +48,12 @@ def booking():
         db.session.add(booking)
         db.session.commit()
 
-        return redirect(url_for('main.view_bookings'))
+        return redirect(url_for('main.profile'))
 
     parks = Park.query.all()
-    return render_template('booking.html', parks=parks)
+    return redirect(url_for('main.profile'))
+
+@main.route('/health-safety-guidelines')
+def health_safety_guidelines():
+    current_date = datetime.now()
+    return render_template('health_safety_guidelines.html', now=current_date)

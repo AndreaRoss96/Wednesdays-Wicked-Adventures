@@ -1,0 +1,24 @@
+<!-- components/park-cards.html -->
+<div class="park-card">
+  <!-- Logo container -->
+  <div class="park-logo">
+    <img src="{{ url_for('static', filename=park.image_path if park.image_path else 'images/parks/default.jpg') }}" 
+         alt="{{ park.name }} logo" 
+         class="park-logo-image">
+  </div>
+  
+  <!-- Short info section -->
+  <div class="short-info">
+    <h3 class="park-name">{{ park.name }}</h3>
+    <p class="park-text">{{ park.short_description if park.short_description else park.description[:80] + '...' }}</p>
+   
+    <!-- Park action buttons -->
+    <div class="park-buttons">
+      <!-- Discover More button -->
+      {% include "components/cta-button-secondary.html" %}
+      
+      <!-- Book Tickets button -->
+      {% include "components/cta-button.html" %}
+    </div>
+  </div>
+</div>

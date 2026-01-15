@@ -18,12 +18,29 @@ def login_post():
     user = User.query.filter_by(email=email).first()
 
     if not user or not check_password_hash(user.password, password):
-    #if not user:
         flash('Please check your login details and try again.')
         return redirect(url_for('login.login'))
 
     login_user(user)
     return redirect(url_for('main.profile'))
+
+@auth_login.route('/forgot_password', methods=['GET', 'POST'])
+def forgot_password():
+    if request.method == 'POST':
+        email = request.form.get('email')
+        new_password = request.form.get('new_password')
+
+        user = User.query.filter_by(email=email).first()
+        if user:
+            user.password = generate_password_hash(new_password, method='pbkdf2:sha256')
+            db.session.commit()
+            flash("Password successfully updated. You can now login.")
+            return redirect(url_for('login.login'))
+        else:
+            flash("Email not found. Please check and try again.")
+            return redirect(url_for('login.forgot_password'))
+
+    return render_template('forgot_password.html')
 
 @auth_login.route('/register')
 def register():

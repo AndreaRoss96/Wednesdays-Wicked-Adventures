@@ -27,64 +27,63 @@ def app():
     Simulate application for testing
     """
     # Create a temporary database file
-    test_app = create_app('testing')
-    
-    # Ensure config is applied
-    test_app.config.update({
+    db_fd, db_path = tempfile.mkstemp()
+
+    test_config = {
         'TESTING': True,
         'SQLALCHEMY_DATABASE_URI': 'sqlite:///:memory:',
         'SQLALCHEMY_TRACK_MODIFICATIONS': False,
         'SECRET_KEY': 'test-secret-key',
         'WTF_CSRF_ENABLED': False  # Disable CSRF for testing
     }
-    
+
     app = create_app('testing')
     app.config.update(test_config)
-    
+
     with app.app_context():
         db.create_all()
         _create_test_data()
-        
-    yield test_app
+
+    yield app
 
     # Cleanup: remove session and database file
-    with test_app.app_context():
+    with app.app_context():
         db.session.remove()
         db.drop_all()
 
 @pytest.fixture(scope='function')
 def client(app):
     """
-    Create a test client
+    Create a test client for HTTP requests
     """
     return app.test_client()
 
 @pytest.fixture(scope='function')
 def runner(app):
     """
-    Create a test CLI runner
+    Create a test CLI runner for command-line testing
     """
     return app.test_cli_runner()
 
 @pytest.fixture(scope='function')
 def db_session(app):
     """
-        Create a new database session for a test
+    Create a new database session for a test with transaction support
     """
     with app.app_context():
         # Start a transaction
         connection = db.engine.connect()
         transaction = connection.begin()
-        
+
         # Bind the session to the connection
         options = {"bind": connection}
         session = db.create_scoped_session(options=options)
-        
+
         # Replace the default session
         db.session = session
-        
+
         yield session
-        
+
         # Rollback and cleanup
         session.close()
         transaction.rollback()
@@ -93,9 +92,7 @@ def db_session(app):
 @pytest.fixture
 def authenticated_client(client, app):
     """
-        Fixture that provides an authenticated client
-
-        Takes regular user -> add session cookie -> returns logged in client
+    Fixture that provides an authenticated client
     """
     with app.app_context():
         user = User.query.filter_by(email='test@example.com').first()
@@ -105,14 +102,14 @@ def authenticated_client(client, app):
 
 def _create_test_data():
     """
-        Create initial test data
+    Create initial test data: roles, users, and parks
     """
     # Create roles
     user_role = Role(role_id=1, name='user')
     admin_role = Role(role_id=2, name='admin')
     db.session.add(user_role)
     db.session.add(admin_role)
-    
+
     # Create test users
     test_user = User(
         name='Test',
@@ -130,7 +127,7 @@ def _create_test_data():
     )
     db.session.add(test_user)
     db.session.add(admin_user)
-    
+
     # Create test parks
     park1 = Park(
         name='Leprechaun Park',
@@ -179,6 +176,5 @@ def _create_test_data():
     )
     db.session.add(park1)
     db.session.add(park2)
-    db.session.add(park3)
 
     db.session.commit()

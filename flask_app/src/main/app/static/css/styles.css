@@ -1,0 +1,1901 @@
+
+/* =========================
+   Design tokens (globals)
+========================= */
+/* Global design tokens used across the application */
+:root {
+  /* Background color tokens */
+  --bg-main: #23002C;        /* Primary application background */
+  --bg-surface: #2e003a;     /* Surface-level background (sections, forms) */
+  --bg-card: #3a0048;        /* Card and elevated surface background */
+
+  /* Text color tokens */
+  --text-main: #ffffff;      /* Primary text color */
+  --text-muted: #cbbad1;     /* Secondary / muted text color */
+
+  /* Accent color tokens */
+  --accent-primary: #ff7ad9; /* Primary accent color for links and highlights */
+  --accent-secondary: #9b5cff; /* Secondary accent color for gradients and emphasis */
+
+  /* Brand color tokens */
+  --brand-primary: #FF5E00;  /* Primary brand color (orange) */
+  --brand-secondary: #460B58; /* Secondary brand color (purple) */
+  --brand-dark: #23002C;     /* Dark brand color */
+  --text-muted-dark: #959595; /* Dark muted text color */
+
+  /* Border color tokens */
+  --border-soft: rgba(255, 255, 255, 0.1); /* Subtle border for surfaces and inputs */
+
+  /* Border radius scale */
+  --radius-sm: 6px;         /* Small radius (inputs, small buttons) */
+  --radius-md: 12px;        /* Medium radius (buttons, cards) */
+  --radius-lg: 20px;        /* Large radius (containers, modals) */
+
+  /* Shadow tokens */
+  --shadow-soft: 0 10px 30px rgba(0, 0, 0, 0.35); /* Soft elevation shadow */
+
+  /* Transition tokens */
+  --transition-default: 0.3s ease; /* Default transition timing */
+  --transition-fast: 0.15s ease;   /* Fast transition timing */
+}
+
+/* =========================
+   Reset + base
+========================= */
+
+/* Global reset to ensure consistent box model and spacing */
+*,
+*::before,
+*::after {
+  box-sizing: border-box; /* Includes padding and border in element size */
+  margin: 0; /* Resets default margins */
+  padding: 0; /* Resets default padding */
+}
+
+/* Root document sizing */
+html,
+body {
+  min-height: 100vh; /* Ensures the document fills the viewport height */
+}
+
+/* Base body styles */
+body {
+  background-color: var(--bg-main); /* Applies global background color */
+  color: var(--text-main); /* Sets default text color */
+  font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont,
+               "Segoe UI", Roboto, Inter, sans-serif; /* System-first font stack */
+  line-height: 1.6; /* Improves text readability */
+}
+
+/* =========================
+   Layout helpers
+========================= */
+
+/* Standard content container with max-width and centering */
+.container {
+  width: 100%; /* Full-width container */
+  max-width: 1200px; /* Constrains content width on large screens */
+  padding: 1.5rem; /* Internal spacing */
+  margin: 0 auto; /* Centers container horizontally */
+}
+
+/* Utility class for centering content */
+.center {
+  display: flex; /* Enables flexbox layout */
+  align-items: center; /* Vertically centers children */
+  justify-content: center; /* Horizontally centers children */
+}
+
+/* =========================
+   Typography
+========================= */
+
+/* Base heading styles */
+h1, h2, h3, h4 {
+  font-weight: 600; /* Semi-bold headings for hierarchy */
+  line-height: 1.2; /* Tight line-height for headings */
+}
+
+/* Base paragraph styles */
+p {
+  color: var(--text-muted); /* Uses muted text color for body content */
+}
+
+
+/* =========================
+   Links
+========================= */
+
+/* Global anchor styling */
+a {
+  color: var(--accent-primary); /* Applies primary accent color to links */
+  text-decoration: none; /* Removes default underline */
+}
+
+/* Hover state for links */
+a:hover {
+  text-decoration: underline; /* Restores underline to indicate interaction */
+}
+
+/* =========================
+   Buttons
+========================= */
+
+/* Base button component */
+.button {
+  display: inline-flex; /* Enables flexible alignment for button content */
+  align-items: center; /* Vertically centers button content */
+  justify-content: center; /* Horizontally centers button content */
+  padding: 0.75rem 1.5rem; /* Defines comfortable click area */
+  border-radius: var(--radius-md); /* Applies medium radius from design tokens */
+  background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary)); /* Gradient accent background */
+  color: #fff; /* High-contrast text color */
+  font-weight: 500; /* Medium font weight for readability */
+  border: none; /* Removes default border */
+  cursor: pointer; /* Indicates interactive behavior */
+  transition: 
+    transform var(--transition-fast),
+    box-shadow var(--transition-fast),
+    background-color var(--transition-default); /* Smooth hover transitions */
+}
+
+/* Hover interaction state for buttons */
+.button:hover {
+  transform: translateY(-1px); /* Subtle lift effect */
+  box-shadow: var(--shadow-soft); /* Applies soft shadow for depth */
+}
+
+/* Focus state for accessibility */
+.button:focus-visible {
+  outline: 2px solid var(--brand-primary); /* Visible focus indicator */
+  outline-offset: 2px; /* Space between element and outline */
+}
+
+/* =========================
+   Cards / surfaces
+========================= */
+
+/* Generic card / surface component */
+.card {
+  background-color: var(--bg-card); /* Uses card background token */
+  border-radius: var(--radius-lg); /* Applies large radius for surfaces */
+  padding: 1.5rem; /* Internal spacing for content */
+  box-shadow: var(--shadow-soft); /* Adds elevation effect */
+  border: 1px solid var(--border-soft); /* Defines subtle surface border */
+}
+
+/* =========================
+   Forms
+========================= */
+
+/* Base styling for form controls */
+input,
+select,
+textarea {
+  width: 100%; /* Ensures full-width form controls */
+  padding: 0.75rem 1rem; /* Internal spacing for readability */
+  border-radius: var(--radius-sm); /* Small radius for form elements */
+  border: 1px solid var(--border-soft); /* Soft border using design token */
+  background-color: var(--bg-surface); /* Applies surface background color */
+  color: var(--text-main); /* Primary text color */
+}
+
+/* Placeholder text styling */
+input::placeholder {
+  color: var(--text-muted); /* Muted color for placeholder text */
+}
+
+/* Focus state for form controls */
+input:focus,
+select:focus,
+textarea:focus {
+  outline: none; /* Removes default browser outline */
+  border-color: var(--accent-primary); /* Highlights focus with accent color */
+}
+
+/* =========================
+   Top Banner
+========================= */
+
+/* Top-of-page informational banner */
+.top-banner {
+  width: 100%; /* Spans full viewport width */
+  height: 40px; /* Fixed banner height */
+  background-color: var(--brand-primary); /* Uses primary brand color */
+  display: flex; /* Enables content centering */
+  align-items: center; /* Vertically centers banner content */
+  justify-content: center; /* Horizontally centers banner content */
+  padding: 0 1.5rem; /* Horizontal spacing for content */
+  margin: 0 auto; /* Centers banner container if constrained */
+  box-sizing: border-box; /* Includes padding in width calculations */
+}
+
+/* Banner text styling */
+.banner-text {
+  color: var(--brand-dark); /* High-contrast dark text color */
+  font-size: 0.875rem; /* Small, readable text size */
+}
+
+/* Link styling inside the top banner */
+.banner-link {
+  color: var(--brand-dark); /* Matches banner text color */
+  font-weight: 600; /* Semi-bold weight for emphasis */
+  font-size: 0.875rem; /* Matches banner text size */
+  margin-left: 0.25rem; /* Spacing between text and link */
+}
+
+
+/* =========================
+    Navbar
+========================= */
+
+/* Main navigation bar container */
+.navbar {
+  width: 100%; /* Spans full viewport width */
+  max-width: 1440px; /* Constrains navbar width on large screens */
+  margin: 0 auto; /* Centers the navbar horizontally */
+  display: flex; /* Enables horizontal layout for navbar items */
+  align-items: center; /* Vertically centers navbar content */
+  justify-content: space-between; /* Distributes brand and actions across the bar */
+  padding: 1rem 6%; /* Adds responsive horizontal and vertical spacing */
+  box-sizing: border-box; /* Includes padding in width calculations */
+}
+
+/* Brand container holding logo and brand text */
+.navbar-brand {
+  display: flex; /* Aligns logo and text horizontally */
+  align-items: center; /* Vertically centers brand elements */
+  gap: 0.75rem; /* Spacing between logo and text */
+  text-decoration: none; /* Removes underline from anchor */
+  color: var(--brand-primary); /* Applies brand accent color */
+}
+
+/* Circular logo background container */
+.logo-container {
+  width: 40px; /* Defines logo container width */
+  height: 40px; /* Defines logo container height */
+  border-radius: 50%; /* Creates circular shape */
+  background-color: var(--brand-primary); /* Uses primary brand color */
+  display: flex; /* Enables centering of logo */
+  align-items: center; /* Vertically centers logo */
+  justify-content: center; /* Horizontally centers logo */
+}
+
+/* Logo image sizing */
+.logo {
+  width: 30px; /* Sets logo width */
+  height: 30px; /* Sets logo height */
+}
+
+/* Brand text styling */
+.brand-text {
+  color: var(--brand-primary); /* Matches brand accent color */
+  font-weight: 700; /* Bold weight for brand emphasis */
+  font-family: 'Inter', sans-serif; /* Uses project font */
+}
+
+/* Home link styling - matches account links */
+.navbar-home-link {
+  margin-left: 1rem; /* Space after the brand text */
+  display: flex;
+  align-items: center;
+}
+
+.navbar-home-link a {
+  color: var(--text-muted-dark); /* Same color as login/register links */
+  text-decoration: none; /* Remove underline */
+  font-weight: 400; /* Normal */
+  font-family: 'Inter', sans-serif; /* Font */
+  font-size: 1rem; /* Standard size */
+  transition: color 0.2s ease; /* Smooth color transition on hover */
+}
+
+.navbar-home-link a:hover {
+  color: var(--brand-primary); /* color changes which mouse hovers */
+}
+
+.navbar-end {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem; /* Space between items */
+  margin-left: auto; /* Pushes to the right */
+}
+
+/* Separator styling */
+.separator {
+  color: var(--text-muted-dark);
+  opacity: 0.5;
+}
+
+/* Account link styling on the navbar end section */
+.navbar-end .account-link {
+  color: var(--text-muted-dark); /* Uses muted color for secondary action */
+  text-decoration: none; /* Removes underline */
+  font-weight: 400; /* Normal font weight */
+  font-family: 'Inter', sans-serif; /* Uses project font */
+  font-size: 1rem; /* Standard navigation text size */
+  vertical-align: middle; /* Aligns text with adjacent icon */
+  transition: color 0.2s ease; /* Smooth color transition on hover */
+}
+
+.navbar-end a:hover {
+  color: var(--brand-primary); /* color changes which mouse hovers */
+}
+
+/* Login/account icon styling */
+.Login_icon {
+  width: 20px; /* Defines icon width */
+  height: 20px; /* Defines icon height */
+  margin-right: 0.5rem; /* Adds spacing between icon and text */
+  vertical-align: middle; /* Aligns icon with text baseline */
+}
+
+
+/* =========================
+    Rollercoaster Banner
+========================= */
+
+/* Full-width banner with responsive background image */
+.rollercoaster-banner {
+  width: 100%; /* Spans the full width of the viewport */
+  height: 30vh; /* Sets banner height relative to viewport */
+  min-height: 200px; /* Ensures minimum height on small screens */
+  align-items: center; /* Vertically centers banner content */
+  display: flex; /* Enables flexible alignment for inner content */
+  padding-left: 5%; /* Adds left spacing to position content away from edge */
+  box-sizing: border-box; /* Includes padding in total width calculations */
+  background-image: url("/static/images/rollercoaster.png"); /* Banner background image */
+  background-size: cover; /* Scales image to fully cover the banner area */
+  background-position: center; /* Centers the background image */
+  background-repeat: no-repeat; /* Prevents background tiling */
+  background-color: var(--bg-surface); /* Fallback color while image loads */
+}
+
+/* Content container layered above the banner background */
+.rollercoaster-content {
+  display: flex; /* Uses flexbox for vertical layout */
+  flex-direction: column; /* Stacks title and description vertically */
+  justify-content: center; /* Vertically centers content within the banner */
+  gap: 0.2rem; /* Defines tight spacing between text elements */
+  position: relative; /* Establishes stacking context */
+  z-index: 1; /* Ensures content appears above the background image */
+}
+
+/* Banner title styling */
+.rollercoaster-title {
+  color: var(--brand-dark); /* Applies primary dark brand color */
+  font-family: 'Inter', sans-serif; /* Uses project font */
+  font-size: clamp(2rem, 2vw, 2rem); /* Responsive font sizing */
+  font-weight: 700; /* Bold weight for emphasis */
+  margin: 0; /* Removes default margins */
+}
+
+/* Banner description text styling */
+.rollercoaster-description {
+  color: var(--brand-dark); /* Matches title color for visual consistency */
+  font-family: 'Inter', sans-serif; /* Uses project font */
+  font-size: clamp(1rem, 1vw, 1rem); /* Responsive font sizing */
+  margin: 0; /* Removes default margins */
+}
+
+/* =========================
+   Parks Carousel
+========================= */
+
+/* Section wrapper that defines spacing and positioning for the carousel */
+.parks-section {
+  padding: 3rem 0; /* Adds vertical spacing around the carousel section */
+  position: relative; /* Allows positioning of internal elements if needed */
+}
+
+/* Outer container responsible for carousel alignment and max width */
+.parks-carousel-container {
+  display: flex; /* Aligns arrows and carousel horizontally */
+  align-items: center; /* Vertically centers carousel and controls */
+  justify-content: center; /* Centers the carousel within the section */
+  gap: 1rem; /* Spacing between carousel and navigation controls */
+  position: relative; /* Establishes positioning context */
+  max-width: 1200px; /* Constrains carousel width for large screens */
+  margin: 0 auto; /* Centers the container horizontally */
+  padding: 0 2rem; /* Adds horizontal padding for responsive spacing */
+}
+
+/* =========================
+   Carousel Viewport
+========================= */
+
+/* Defines the horizontal scroll container for the carousel */
+.parks-carousel {
+  width: 100%; /* Ensures the carousel occupies the full width of its parent */
+  overflow-x: auto; /* Enables horizontal scrolling for overflow content */
+  scroll-snap-type: x mandatory; /* Enforces horizontal snap alignment for child elements */
+  -webkit-overflow-scrolling: touch; /* Enables native momentum scrolling on iOS devices */
+  scroll-behavior: smooth; /* Applies smooth scrolling behavior for programmatic and user scrolls */
+  padding: 1rem 0; /* Adds vertical padding to separate the carousel from surrounding content */
+  -ms-overflow-style: none; /* Hides scrollbar in legacy Microsoft browsers */
+  scrollbar-width: none; /* Hides scrollbar in Firefox */
+}
+
+/* Hides the scrollbar in WebKit-based browsers */
+.parks-carousel::-webkit-scrollbar {
+  display: none;
+}
+
+/* Flex container that holds and lays out the carousel items */
+.parks-track {
+  display: flex; /* Uses flexbox to align carousel items horizontally */
+  gap: 2rem; /* Defines consistent spacing between carousel items */
+  padding: 0 2rem; /* Adds horizontal padding to align content visually within the viewport */
+}
+
+/* =========================
+   Parks Cards
+========================= */
+
+/* Defines the base layout and sizing behavior of each park card */
+.park-card {
+  flex: 0 0 calc(33.333% - 1.33rem); /* Sets fixed flex-basis to display three cards per row in the carousel */
+  scroll-snap-align: start; /* Aligns the card to the start of the scroll snap container */
+  min-width: 280px; /* Prevents the card from shrinking below a usable minimum width */
+}
+
+/* Container for the park logo and its decorative background */
+.park-logo {
+  width: 140px; /* Defines the logo container width */
+  height: 140px; /* Defines the logo container height */
+  margin: 0 auto 1.5rem auto; /* Centers the logo horizontally and adds bottom spacing */
+  position: relative; /* Establishes positioning context for pseudo-elements and child layers */
+}
+
+/* Circular background layer behind the park logo */
+.park-logo::before {
+  content: ''; /* Required to render the pseudo-element */
+  position: absolute; /* Positions the background relative to the logo container */
+  width: 100%; /* Matches the container width */
+  height: 100%; /* Matches the container height */
+  border-radius: 50%; /* Creates a perfect circular shape */
+  background-color: var(--brand-primary); /* Applies the accent background color */
+  z-index: 1; /* Places the background behind the logo image */
+}
+
+/* Park logo image positioned above the circular background */
+.park-logo-image {
+  width: 130%; /* Scales the logo slightly larger than the container */
+  height: 130%; /* Maintains proportional scaling */
+  object-fit: contain; /* Ensures the logo preserves aspect ratio */
+  position: absolute; /* Allows precise positioning within the logo container */
+  left: 50%; /* Centers the image horizontally */
+  bottom: 0; /* Anchors the image to the bottom of the container */
+  transform: translate(-50%, 20%); /* Adjusts horizontal centering and vertical offset */
+  z-index: 2; /* Ensures the logo appears above the background layer */
+}
+
+/* Container for textual and informational content of the park card */
+.short-info {
+  display: flex; /* Uses flexbox for vertical layout */
+  flex-direction: column; /* Stacks child elements vertically */
+  align-items: center; /* Horizontally centers all child elements */
+  gap: 1rem; /* Defines vertical spacing between text elements */
+  text-align: center; /* Centers text alignment */
+  width: 100%; /* Ensures the content spans the full card width */
+}
+
+/* Park name styling */
+.park-name {
+  color: var(--brand-primary); /* Applies accent color for emphasis */
+  font-size: 1.1rem; /* Sets visual hierarchy for the title */
+  font-weight: 600; /* Applies semi-bold weight for readability */
+}
+
+/* Park description or supporting text styling */
+.park-text {
+  color: var(--text-muted-dark); /* Uses muted color for secondary information */
+  font-size: 0.9rem; /* Slightly smaller font size for supporting text */
+}
+
+/* =========================
+   Carousel Arrows
+========================= */
+
+/* Base styling for carousel navigation arrows */
+.carousel-arrow {
+  width: 48px; /* Defines a consistent interactive hit area */
+  height: 48px; /* Ensures a square base for circular shape */
+  border-radius: 50%; /* Creates a circular button */
+  background-color: var(--bg-card); /* Uses card background token for visual consistency */
+  border: 2px solid var(--brand-primary); /* Applies accent-colored border for emphasis */
+  color: var(--brand-primary); /* Sets icon/text color to accent color */
+  font-size: 1.5rem; /* Ensures arrow icon visibility and hierarchy */
+  font-weight: bold; /* Reinforces icon weight for readability */
+  cursor: pointer; /* Indicates clickable interaction */
+  display: flex; /* Enables flexbox centering */
+  align-items: center; /* Vertically centers arrow content */
+  justify-content: center; /* Horizontally centers arrow content */
+  transition: all var(--transition-default); /* Smooth transition for hover and state changes */
+  flex-shrink: 0; /* Prevents the arrow from shrinking in flex layouts */
+  z-index: 10; /* Ensures arrows remain above carousel content */
+}
+
+/* Hover interaction state for enabled arrows */
+.carousel-arrow:hover {
+  background-color: var(--brand-primary); /* Inverts background to accent color */
+  color: white; /* Switches icon color for contrast */
+  transform: scale(1.1); /* Provides visual feedback through subtle scaling */
+}
+
+/* Focus state for accessibility */
+.carousel-arrow:focus-visible {
+  outline: 2px solid var(--brand-primary); /* Visible focus indicator */
+  outline-offset: 2px; /* Space between element and outline */
+}
+
+/* Disabled state styling for inactive arrows */
+.carousel-arrow:disabled {
+  opacity: 0.3; /* Reduces visibility to indicate inactive state */
+  cursor: not-allowed; /* Communicates disabled interaction */
+  border-color: var(--text-muted-dark); /* Uses muted color for disabled border */
+  color: var(--text-muted-dark); /* Uses muted color for disabled icon */
+  transform: none !important; /* Prevents transform effects when disabled */
+}
+
+/* Overrides hover effects when the arrow is disabled */
+.carousel-arrow:disabled:hover {
+  background-color: var(--bg-card) !important; /* Maintains default background */
+  color: var(--text-muted-dark) !important; /* Maintains disabled text color */
+  transform: none !important; /* Ensures no hover animation is applied */
+}
+
+/* =========================
+   CTA Button – Book Tickets
+========================= */
+
+/* Primary call-to-action button styling */
+.cta-button {
+  display: inline-flex; /* Enables inline flex layout for icon + text alignment */
+  align-items: center; /* Vertically centers button content */
+  gap: 0.5rem; /* Defines spacing between text and icon */
+  align-self: flex-start; /* Aligns button to the start of the flex container */
+  width: fit-content; /* Shrinks button width to fit its content */
+
+  padding: 0.5rem 0.75rem; /* Defines internal spacing for comfortable click area */
+  background-color: var(--brand-primary); /* Primary accent background color */
+  border-radius: 6px; /* Applies subtle rounding for modern UI */
+  border: 2px solid transparent; /* Reserves border space to avoid layout shift on hover */
+
+  font-family: 'Inter', sans-serif; /* Uses the project's primary font */
+  font-size: 0.95rem; /* Balanced font size for CTA prominence */
+  font-weight: 600; /* Semi-bold weight for emphasis */
+  text-decoration: none; /* Removes underline for anchor-based buttons */
+
+  color: #ffffff; /* High-contrast text color */
+  cursor: pointer; /* Indicates interactive behavior */
+
+  transition: 
+    background-color var(--transition-default),
+    color var(--transition-default),
+    border-color var(--transition-default),
+    transform var(--transition-fast); /* Smooth visual transitions for interactive states */
+}
+
+/* CTA text and icon inherit color and support animation */
+.cta-text,
+.cta-arrow {
+  color: inherit; /* Inherits color from parent CTA */
+  transition: transform var(--transition-fast); /* Enables subtle motion effects */
+}
+
+/* Hover state for primary CTA */
+.cta-button:hover {
+  background-color: var(--brand-secondary); /* Switches to secondary brand color */
+  border-color: var(--brand-primary); /* Reveals accent border */
+  color: var(--brand-primary); /* Inverts text color for contrast */
+}
+
+/* Focus state for accessibility */
+.cta-button:focus-visible {
+  outline: 2px solid var(--brand-primary); /* Visible focus indicator */
+  outline-offset: 2px; /* Space between element and outline */
+}
+
+/* Icon animation on hover */
+.cta-button:hover .cta-arrow {
+  transform: translateX(4px); /* Moves arrow slightly to the right */
+}
+
+/* =========================
+   CTA Button – Discover More
+========================= */
+
+/* Secondary CTA variant */
+.cta-button.cta-secondary {
+  background-color: var(--brand-secondary); /* Uses secondary brand color */
+  border: 2px solid var(--brand-primary); /* Accent border for outlined appearance */
+  color: var(--brand-primary); /* Accent-colored text */
+}
+
+/* Hover state for secondary CTA */
+.cta-button.cta-secondary:hover {
+  background-color: var(--brand-primary); /* Inverts background to primary accent */
+  color: #ffffff; /* Switches text to white for contrast */
+  border-color: var(--brand-primary); /* Maintains accent border */
+}
+
+/* Icon animation on hover for secondary CTA */
+.cta-button.cta-secondary:hover .cta-arrow {
+  transform: translateX(4px); /* Matches primary CTA interaction pattern */
+}
+
+/* =========================
+   Park Buttons Container
+========================= */
+
+/* Container for grouping CTA buttons within park cards */
+.park-buttons {
+  display: flex; /* Aligns buttons horizontally */
+  gap: 0.5rem; /* Defines spacing between buttons */
+  justify-content: center; /* Centers buttons within the container */
+  margin-top: 1rem; /* Adds separation from preceding content */
+  flex-wrap: wrap; /* Allows buttons to wrap on smaller screens */
+}
+
+/* =========================
+   Contact Banner Space
+========================= */
+.contact-banner-space {
+  width: 100%; /* Full width container */
+  background-color: var(--brand-secondary); /* Uses brand secondary color */
+  min-height: 250px; /* Minimum height */
+  padding: 2rem 0; /* Vertical padding */
+  display: flex; /* Enables flexbox */
+  align-items: center; /* Vertically centers content */
+}
+
+.contact-wrapper {
+  width: 100%; /* Full width */
+  max-width: 1200px; /* Maximum width constraint */
+  margin: 0 auto; /* Horizontal centering */
+  padding: 0 2rem; /* Horizontal padding */
+  display: flex; /* Flexbox layout */
+  align-items: center; /* Changed from flex-start to center for better alignment */
+  gap: clamp(1.5rem, 3vw, 2.5rem); /* Responsive gap using clamp() */
+}
+
+/* Large logo - LEFT SIDE */
+.contact-logo {
+  flex: 0 0 auto; /* Doesn't grow or shrink, auto size */
+  height: clamp(120px, 20vh, 300px); /* Responsive height with clamp() */
+  width: auto; /* Maintains aspect ratio */
+  object-fit: contain; /* Ensures image fits within bounds */
+  /* Removed align-self: center since wrapper already uses align-items: center */
+}
+
+/* Contact content - MIDDLE */
+.contact-content {
+  flex: 0 1 auto; /* Can grow and shrink as needed */
+  min-width: 0; /* IMPORTANT: Allows content to shrink */
+  padding: 0 0.5rem; /* Side padding instead of fixed top padding */
+}
+
+.contact-title {
+  color: var(--brand-primary); /* Uses brand primary color */
+  font-size: clamp(1.5rem, 2vw, 1.75rem); /* Responsive font size */
+  font-weight: 700; /* Bold font weight */
+  margin-bottom: 0.5rem; /* Bottom margin */
+  line-height: 1.2; /* Line height */
+}
+
+.contact-text {
+  color: var(--text-muted-dark); /* Uses muted dark text color */
+  font-size: clamp(0.85rem, 0.9vw, 0.9rem); /* Responsive font size */
+  line-height: 1.4; /* Line height */
+  opacity: 0.9; /* Slightly transparent */
+  
+  /* Line break control */
+  max-width: 200px; /* Maximum width before breaking */
+  width: max-content; /* Occupies only necessary space */
+  
+  /* Ensures word breaking */
+  word-wrap: break-word; /* Legacy property for word breaking */
+  overflow-wrap: break-word; /* Modern property for word breaking */
+  hyphens: auto; /* Enables automatic hyphenation */
+
+  /* Mobile: hidden but maintains layout space */
+  visibility: visible; /* Element is visible */
+  opacity: 1; /* Full opacity */
+  transition: opacity 0.3s ease, visibility 0.3s ease; /* Smooth transition */
+}
+
+/* Form - RIGHT SIDE */
+.contact-form {
+  flex: 1 1 auto; /* Changed from 1 1 auto to 0 1 auto */
+  min-width: 0; /* Allows element to shrink below content width */
+  display: flex; /* Flexbox layout */
+  flex-direction: column; /* Vertical stacking */
+  gap: 0.875rem; /* Space between form elements */
+  max-width: 450px; /* Maximum width constraint */
+  margin-left: auto; /* ← KEY: pushes to the right */
+}
+
+.contact-input,
+.contact-textarea {
+  width: 100%; /* Full width */
+  padding: 0.75rem 1rem; /* Internal spacing */
+  border-radius: 8px; /* Border radius */
+  border: 2px solid rgba(255, 255, 255, 0.2); /* Semi-transparent white border */
+  background-color: rgba(255, 255, 255, 0.1); /* Semi-transparent white background */
+  color: #ffffff; /* White text */
+  font-family: 'Inter', sans-serif; /* Font family */
+  font-size: clamp(0.85rem, 1vw, 0.9rem); /* Responsive font size */
+}
+
+.contact-input::placeholder,
+.contact-textarea::placeholder {
+  color: rgba(255, 255, 255, 0.7); /* Increased contrast for better accessibility */
+}
+
+.contact-textarea {
+  min-height: 80px; /* Minimum height */
+  resize: vertical; /* Allows vertical resizing only */
+}
+
+.form-buttons {
+  margin-top: 0.5rem; /* Top margin */
+}
+
+/* Submit button inside form */
+.contact-form .cta-button {
+  align-self: flex-start; /* Aligns to start of flex container */
+  font-size: clamp(0.85rem, 1vw, 0.9rem); /* Responsive font size */
+  padding: 0.625rem 1.25rem; /* Button padding */
+}
+
+/* =========================
+   Enhanced Responsiveness
+========================= */
+@media (max-width: 768px) { /* Mobile breakpoint */
+  .contact-wrapper {
+    flex-direction: column; /* Stacks elements vertically */
+    align-items: center; /* Centers items horizontally */
+    text-align: center; /* Centers text */
+    gap: 2rem; /* Gap between elements */
+  }
+  
+  .contact-logo {
+    height: clamp(80px, 12vh, 120px); /* Smaller responsive height */
+    order: -1; /* Places logo at the top (order property) */
+  }
+  
+  .contact-content {
+    width: 100%; /* Full width */
+    max-width: 500px; /* Maximum width constraint */
+    padding: 0; /* Removes padding */
+  }
+  
+  .contact-title {
+    font-size: 1.75rem; /* Fixed font size for mobile */
+  }
+  
+  .contact-text {
+    display: none; /* More semantic than visibility: hidden for content that doesn't appear */
+  }
+  
+  .contact-form {
+    width: 100%; /* Full width */
+    max-width: 500px; /* Maximum width constraint */
+  }
+  
+  .contact-form .cta-button {
+    align-self: center; /* Centers button horizontally */
+  }
+
+  /* Improve accessibility on mobile forms */
+  .contact-input,
+  .contact-textarea {
+    font-size: 16px; /* Prevents automatic zoom on iOS */
+  }
+}
+
+/* =========================
+   Footer
+========================= */
+.footer-description {
+  color: var(--text-muted-dark); /* Uses muted color for secondary information */
+  font-size: 0.8rem; /* Slightly smaller font size for supporting text */
+}
+
+/* Style for the divider line */
+.footer-line {
+  border: none; /* Removes default border styling */
+  border-top: 1px solid #959595; /* Creates top border with gray color */
+  margin: 20px 5% 15px 5%; /* 5% margin on each side - top, right, bottom, left */
+  width: 90%; /* 100% - (2 x 5%) - maintains 5% margin on both sides */
+}
+
+/* Style for copyright text */
+.copyright {
+  text-align: center; /* Centers text horizontally */
+  font-size: 0.9rem; /* Font size */
+  color: #959595; /* or the color you prefer - gray color */
+  padding: 10px 0; /* Vertical padding only - top and bottom */
+  font-family: Arial, sans-serif; /* Font family */
+}
+
+/* =========================
+Park Page Styles
+========================= */
+
+/* Banner space */
+.park-banner {
+  width: 100%; /* Occupies full available width */
+  height: 400px; /* Fixed height for the banner */
+  position: relative; /* Positioning context for child elements */
+  overflow: hidden; /* Hides any content that overflows the boundaries */
+}
+
+.banner-image {
+  width: 100%; /* Full width of the container */
+  height: 100%; /* Full height of the container */
+  object-fit: cover; /* Adjusts the image to cover the entire area without distortion */
+}
+
+/* Content container */
+.park-content-container {
+  width: 100%; /* Occupies 100% of available width */
+  max-width: 40vw; /* Limits maximum width to 40% of the viewport (screen) */
+  margin: 0 5%; /* Removes vertical margins, 5% margin on sides */
+  line-height: 1.7; /* Line height for better readability */
+  padding: 1.5rem; /* Internal spacing */
+  border-radius: 8px; /* Rounded corners */
+}
+
+/* Title inside the content container */
+.park-content-container h1 {
+  color: var(--brand-primary); /* Color using CSS variable */
+  font-size: 2rem; /* Font size */
+  margin-bottom: 1rem; /* Bottom margin */
+}
+
+/* Park information container */
+.park-info {
+  display: grid; /* Activates grid layout */
+  grid-template-columns: repeat(2, 1fr); /* Creates 2 columns of equal size */
+  gap: 1rem; /* Space between grid items */
+  margin-top: 2rem; /* Top margin */
+  padding: 1.5rem; /* Internal padding */
+  background: var(--bg-surface); /* Background color using variable */
+  border-radius: 8px; /* Rounded corners */
+  width: fit-content; /* Width adjusts to internal content */
+  max-width: 500px; /* Maximum width to prevent excessive width */
+  margin-right: auto; /* Aligns to the left automatically */
+}
+
+/* Title inside the information container */
+.park-info h3 {
+  grid-column: 1 / -1; /* Makes the title occupy all grid columns */
+  color: var(--accent-primary); /* Color using variable */
+  font-size: 1.25rem; /* Font size */
+  margin-bottom: 0.5rem; /* Bottom margin */
+  border-bottom: 2px solid rgba(255, 94, 0, 0.3); /* Bottom border with transparency */
+  padding-bottom: 0.5rem; /* Padding below the border */
+}
+
+/* For small screens, revert to 1 column */
+@media (max-width: 600px) {
+  .park-info {
+    grid-template-columns: 1fr; /* Single column layout on mobile */
+    max-width: 350px; /* Reduced maximum width for mobile */
+  }
+}
+
+/* Responsive adjustments for content container on mobile */
+@media (max-width: 600px) {
+  .park-content-container {
+    max-width: 90vw; /* Almost full width on mobile */
+    margin: 0 auto; /* Centers horizontally on mobile */
+    padding: 1rem; /* Reduced padding on mobile */
+    border-radius: 6px; /* Slightly smaller border radius */
+  }
+  
+  /* Adjusts text for better mobile reading */
+  .park-content-container p {
+    font-size: 1rem; /* Standard font size for mobile */
+    line-height: 1.6; /* Slightly reduced line height */
+    text-align: left; /* Left alignment on mobile (not justified) */
+  }
+}
+/* =========================
+   Park Main Layout (Two Columns)
+========================= */
+
+/* Main container for two-column layout */
+.park-main-container {
+  display: flex; /* Enables flexbox layout */
+  gap: 3rem; /* Space between columns */
+  max-width: 1400px; /* Maximum width constraint */
+  margin: 2rem auto; /* Centers container horizontally */
+  padding: 0 2rem; /* Horizontal padding */
+  align-items: flex-start; /* Aligns items at the top */
+}
+
+/* Left column: Content */
+.park-content-column {
+  flex: 1; /* Occupies available space proportionally */
+  min-width: 0; /* Allows column to shrink below content width */
+}
+
+/* Content container styling */
+.park-content-container {
+  width: 100%; /* Full width of parent column */
+  line-height: 1.7; /* Line height for better readability */
+  padding: 0; /* Removed extra padding */
+}
+
+/* Right column: Gallery */
+.park-gallery-column {
+  flex: 1; /* Occupies equal space as content column */
+  min-width: 0; /* Allows shrinking */
+  position: sticky; /* Sticks to viewport when scrolling */
+  top: 2rem; /* Distance from top when sticky */
+}
+
+/* =========================
+   Gallery Styles
+========================= */
+
+/* Gallery container */
+.gallery-container {
+  width: 100%; /* Full width of parent column */
+  background: var(--bg-surface); /* Background using CSS variable */
+  border-radius: 12px; /* Rounded corners */
+  padding: 1rem; /* Internal spacing */
+  border: 1px solid rgba(255, 94, 0, 0.2); /* Orange border with transparency */
+  box-sizing: border-box; /* Includes padding and border in width calculation */
+}
+
+/* Main image container */
+.main-image-container {
+  width: 100%; /* Full width */
+  margin-bottom: 1rem; /* Space below main image */
+}
+
+/* Frame for the main image */
+.image-frame {
+  position: relative; /* Positioning context for child elements */
+  width: 100%; /* Full width */
+  aspect-ratio: 16/9; /* Responsive aspect ratio (width:height) */
+  overflow: hidden; /* Hides overflow content */
+  border-radius: 8px; /* Rounded corners */
+  background: var(--bg-secondary); /* Fallback background color */
+}
+
+/* Main gallery image */
+#gallery-main-img {
+  width: 100%; /* Full width of container */
+  height: 100%; /* Full height of container */
+  object-fit: cover; /* Scales image to cover container without distortion */
+  display: block; /* Removes extra space below image */
+  transition: transform 0.3s ease; /* Smooth zoom transition */
+}
+
+/* Hover effect for main image */
+.image-frame:hover #gallery-main-img {
+  transform: scale(1.02); /* Slight zoom on hover */
+}
+
+/* Thumbnail navigation strip */
+.thumbnail-strip {
+  display: flex; /* Enables flexbox layout */
+  align-items: center; /* Vertical centering */
+  justify-content: center; /* Horizontal centering */
+  gap: 0.5rem; /* Space between navigation elements */
+  width: 100%; /* Full width */
+}
+
+/* Navigation buttons (prev/next) */
+.nav-btn {
+  background: var(--primary-color); /* Button background color */
+  color: white; /* Text color */
+  border: none; /* Removes default border */
+  border-radius: 6px; /* Rounded corners */
+  width: 32px; /* Fixed width */
+  height: 32px; /* Fixed height */
+  display: flex; /* Enables flexbox for centering */
+  align-items: center; /* Vertical centering */
+  justify-content: center; /* Horizontal centering */
+  font-size: 1.2rem; /* Icon size */
+  cursor: pointer; /* Pointer cursor on hover */
+  flex-shrink: 0; /* Prevents button from shrinking */
+  transition: all 0.2s ease; /* Smooth transition for hover effects */
+}
+
+/* Hover state for navigation buttons */
+.nav-btn:hover:not(:disabled) {
+  background: #e65c00; /* Darker orange on hover */
+}
+
+/* Disabled state for navigation buttons */
+.nav-btn:disabled {
+  opacity: 0.3; /* Reduced opacity */
+  cursor: not-allowed; /* Indicates non-interactive element */
+}
+
+/* Thumbnail container */
+.thumbnails {
+  display: flex; /* Horizontal layout for thumbnails */
+  gap: 0.5rem; /* Space between thumbnails */
+  justify-content: center; /* Centers thumbnails horizontally */
+  flex: 1; /* Takes available space */
+  max-width: calc(80px * 4 + 0.5rem * 3); /* Maximum width for 4 thumbnails with gaps */
+}
+
+/* Individual thumbnail item */
+.thumb-item {
+  width: 80px; /* Fixed width */
+  height: 60px; /* Fixed height */
+  border-radius: 6px; /* Rounded corners */
+  overflow: hidden; /* Hides overflow content */
+  cursor: pointer; /* Pointer cursor on hover */
+  flex-shrink: 0; /* Prevents thumbnail from shrinking */
+  border: 3px solid transparent; /* Transparent border (shows when active/hover) */
+  transition: all 0.2s ease; /* Smooth transition for hover effects */
+}
+
+/* Active thumbnail state */
+.thumb-item.active {
+  border-color: var(--primary-color); /* Orange border for active thumbnail */
+}
+
+/* Hover state for inactive thumbnails */
+.thumb-item:hover:not(.active) {
+  border-color: rgba(255, 94, 0, 0.3); /* Semi-transparent orange border on hover */
+}
+
+/* Thumbnail image */
+.thumb-item img {
+  width: 100%; /* Full width of container */
+  height: 100%; /* Full height of container */
+  object-fit: cover; /* Scales image to cover container without distortion */
+  display: block; /* Removes extra space below image */
+}
+
+/* =========================
+   Responsiveness
+========================= */
+
+/* Tablet and mobile screens */
+@media (max-width: 800px) {
+  /* Stack columns vertically on smaller screens */
+  .park-main-container {
+    flex-direction: column; /* Stack columns vertically */
+  }
+  
+  /* Gallery column adjustments for mobile */
+  .park-gallery-column {
+    position: static; /* Removes sticky positioning on mobile */
+    order: -1; /* Places gallery above content (order property) */
+    margin-bottom: 2rem; /* Space below gallery */
+  }
+  
+  /* Adjust main image aspect ratio for mobile */
+  .image-frame {
+    aspect-ratio: 16/9; /* Maintain aspect ratio */
+    max-height: 400px; /* Maximum height constraint */
+  }
+  
+  /* Adjust thumbnail container width for mobile */
+  .thumbnails {
+    max-width: calc(70px * 4 + 0.5rem * 3); /* Adjusted for smaller thumbnails */
+  }
+  
+  /* Smaller thumbnails for mobile */
+  .thumb-item {
+    width: 70px; /* Reduced width */
+    height: 52px; /* Reduced height */
+  }
+}
+/* =========================
+   Auth Card Container
+========================= */
+/* Container wrapper for authentication card with responsive width */
+.auth-card-wrapper {
+    width: 100%; /* Full width on mobile devices */
+    max-width: 400px; /* Maximum width on larger screens */
+    margin: 0 auto; /* Center horizontally */
+}
+
+/* =========================
+   Auth Card Base
+========================= */
+/* Base styling for authentication card component */
+.auth-card {
+    padding: 2rem; /* Internal spacing */
+    background-color: var(--bg-card); /* Background using CSS variable */
+    border-radius: var(--radius-lg); /* Large rounded corners */
+    border: 1px solid var(--border-soft); /* Subtle border */
+    box-shadow: var(--shadow-soft); /* Soft shadow for elevation */
+}
+
+/* =========================
+   Auth Card Header
+========================= */
+/* Header section of authentication card */
+.auth-card-header {
+    text-align: center; /* Center align all content */
+    margin-bottom: 2rem; /* Spacing below header */
+}
+
+/* Circular icon container for brand/logo */
+.auth-card-icon {
+    width: 60px; /* Fixed width */
+    height: 60px; /* Fixed height */
+    margin: 0 auto 1rem auto; /* Center horizontally with bottom margin */
+    background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary)); /* Gradient background */
+    border-radius: 50%; /* Perfect circle */
+    display: flex; /* Flexbox for centering content */
+    align-items: center; /* Vertical centering */
+    justify-content: center; /* Horizontal centering */
+}
+
+/* SVG icon styling inside the circular container */
+.auth-card-icon svg {
+    width: 28px; /* Icon width */
+    height: 28px; /* Icon height */
+    color: white; /* White icon color */
+}
+
+/* Main title styling */
+.auth-card-title {
+    color: var(--text-main); /* Primary text color */
+    font-size: 1.75rem; /* Large font size */
+    font-weight: 600; /* Semi-bold weight */
+    margin-bottom: 0.5rem; /* Spacing below title */
+}
+
+/* Subtitle/description text styling */
+.auth-card-subtitle {
+    color: var(--text-muted); /* Muted text color */
+    font-size: 0.95rem; /* Slightly smaller font */
+    line-height: 1.5; /* Improved readability */
+}
+
+/* =========================
+   Auth Card Links
+========================= */
+/* Container for authentication-related links */
+.auth-card-links {
+    margin-top: 1.5rem; /* Spacing above links */
+    display: flex; /* Flexbox layout */
+    flex-direction: column; /* Stack vertically */
+    gap: 0.75rem; /* Spacing between links */
+    text-align: center; /* Center align text */
+}
+
+/* Base link styling */
+.auth-card-link {
+    color: var(--text-muted); /* Muted text color */
+    font-size: 0.9rem; /* Small font size */
+    text-decoration: none; /* Remove underline */
+    transition: color var(--transition-fast); /* Smooth color transition */
+}
+
+/* Hover state for links */
+.auth-card-link:hover {
+    color: var(--accent-primary); /* Change to primary color on hover */
+    text-decoration: underline; /* Add underline on hover */
+}
+
+/* Primary variant for highlighted links */
+.auth-card-link.primary {
+    color: var(--accent-primary); /* Primary accent color */
+    font-weight: 600; /* Bold font weight */
+}
+
+/* =========================
+   Auth Form Styles
+========================= */
+
+/* Form container styling */
+.auth-form {
+    display: flex; /* Flexbox layout */
+    flex-direction: column; /* Stack form elements vertically */
+    gap: 1.5rem; /* Spacing between form groups */
+}
+
+/* Form field group container */
+.auth-form-group {
+    display: flex; /* Flexbox layout */
+    flex-direction: column; /* Stack label and input vertically */
+    gap: 0.5rem; /* Spacing between label and input */
+}
+
+/* Field label styling */
+.auth-form-label {
+    color: var(--text-main); /* Primary text color */
+    font-size: 0.9rem; /* Small font size */
+    font-weight: 500; /* Medium font weight */
+}
+
+/* Input fields base styling */
+.auth-form-input {
+    width: 100%; /* Full width of container */
+    padding: 0.875rem 1rem; /* Internal spacing */
+    background-color: var(--bg-surface); /* Background color */
+    border: 1px solid var(--border-soft); /* Border styling */
+    border-radius: var(--radius-sm); /* Small rounded corners */
+    color: var(--text-main); /* Text color */
+    font-family: 'Inter', sans-serif; /* Font family */
+    font-size: 0.95rem; /* Font size */
+    transition: all var(--transition-default); /* Smooth transition for all properties */
+}
+
+/* Focus state for input fields */
+.auth-form-input:focus {
+    outline: none; /* Remove default outline */
+    border-color: var(--accent-primary); /* Change border color on focus */
+    box-shadow: 0 0 0 3px rgba(255, 122, 217, 0.1); /* Subtle focus ring */
+}
+
+/* Placeholder text styling */
+.auth-form-input::placeholder {
+    color: var(--text-muted); /* Muted color for placeholder */
+}
+
+/* =========================
+   Auth Checkbox
+========================= */
+/* Checkbox container styling */
+.auth-checkbox {
+    display: flex; /* Flexbox for alignment */
+    align-items: center; /* Vertical centering */
+    gap: 0.5rem; /* Spacing between checkbox and label */
+    cursor: pointer; /* Pointer cursor on hover */
+    color: var(--text-muted); /* Muted text color */
+    font-size: 0.9rem; /* Small font size */
+}
+
+/* Checkbox input styling */
+.auth-checkbox input {
+    accent-color: var(--accent-primary); /* Custom checkbox color */
+}
+
+.terms-link {
+    color: var(--brand-primary);
+    text-decoration: underline;
+    transition: opacity 0.2s ease;
+}
+
+.terms-link:hover {
+    opacity: 0.8;
+}
+
+/* =========================
+   Auth Submit Button
+========================= */
+/* Submit button styling */
+.auth-submit-button {
+    width: 100%; /* Full width */
+    padding: 1rem; /* Button padding */
+    margin-top: 0.5rem; /* Spacing above button */
+}
+
+/* =========================
+   Password Input Wrapper
+========================= */
+/* Wrapper for password input with toggle button */
+.auth-password-wrapper {
+    position: relative; /* For positioning toggle button absolutely */
+}
+
+/* Password visibility toggle button */
+.auth-toggle-password {
+    position: absolute; /* Absolute positioning within wrapper */
+    right: 1rem; /* Position from right edge */
+    top: 50%; /* Vertical centering */
+    transform: translateY(-50%); /* Precise vertical centering */
+    background: none; /* No background */
+    border: none; /* No border */
+    cursor: pointer; /* Pointer cursor */
+    padding: 0; /* No padding */
+    width: 24px; /* Fixed width */
+    height: 24px; /* Fixed height */
+    display: flex; /* Flexbox for centering icon */
+    align-items: center; /* Vertical centering */
+    justify-content: center; /* Horizontal centering */
+    color: var(--text-muted); /* Muted icon color */
+    transition: color var(--transition-fast); /* Smooth color transition */
+}
+
+/* Hover state for toggle button */
+.auth-toggle-password:hover {
+    color: var(--accent-primary); /* Change color on hover */
+}
+
+/* Icon styling inside toggle button */
+.auth-toggle-password svg {
+    width: 20px; /* Icon width */
+    height: 20px; /* Icon height */
+}
+
+/* =========================
+   Auth Form Options
+========================= */
+/* Container for form options like remember me and forgot password */
+.auth-form-options {
+    display: flex; /* Flexbox layout */
+    justify-content: space-between; /* Space items evenly */
+    align-items: center; /* Vertical alignment */
+    font-size: 0.9rem; /* Small font size */
+}
+
+/* =========================
+   Auth Page Layouts
+========================= */
+
+/* Base layout for authentication pages */
+.auth-page {
+    min-height: calc(100vh - 180px); /* Minimum height accounting for header/footer */
+    display: flex; /* Flexbox for centering */
+    align-items: center; /* Vertical centering */
+    justify-content: center; /* Horizontal centering */
+    padding: 2rem 1.5rem; /* Page padding */
+}
+
+/* Two-column layout container */
+.auth-layout {
+    display: flex; /* Flexbox for columns */
+    gap: 4rem; /* Spacing between columns */
+    align-items: center; /* Vertical alignment of columns */
+    max-width: 1100px; /* Maximum width */
+    width: 100%; /* Full width */
+    margin: 0 auto; /* Center horizontally */
+}
+
+/* Info column (left side with features) */
+.auth-info-column {
+    flex: 1; /* Take available space */
+    color: var(--text-main); /* Primary text color */
+}
+
+/* Title in info column */
+.auth-info-column h1 {
+    font-size: 2.5rem; /* Large font size */
+    font-weight: 700; /* Bold weight */
+    line-height: 1.2; /* Line height */
+    margin-bottom: 1rem; /* Spacing below */
+    color: var(--brand-primary); /* Brand primary color */
+}
+
+/* Description text in info column */
+.auth-info-column p {
+    font-size: 1.1rem; /* Medium font size */
+    color: var(--text-muted); /* Muted text color */
+    line-height: 1.6; /* Improved readability */
+    max-width: 400px; /* Limit width for better readability */
+}
+
+/* Form column (right side with form) */
+.auth-form-column {
+    flex: 0 0 400px; /* Fixed width of 400px */
+}
+
+/* =========================
+   Auth Features List
+========================= */
+/* Container for feature list */
+.auth-features {
+    display: flex; /* Flexbox layout */
+    flex-direction: column; /* Stack features vertically */
+    gap: 1.5rem; /* Spacing between features */
+    margin-top: 2rem; /* Spacing above features */
+}
+
+/* Individual feature item */
+.auth-feature {
+    display: flex; /* Flexbox for icon and text */
+    gap: 1rem; /* Spacing between icon and content */
+    align-items: center; /* Vertical alignment */
+}
+
+/* Feature icon container */
+.auth-feature-icon {
+    flex-shrink: 0; /* Prevent icon from shrinking */
+    width: 48px; /* Fixed width */
+    height: 48px; /* Fixed height */
+    background: var(--bg-card); /* Background color */
+    border-radius: var(--radius-md); /* Medium rounded corners */
+    display: flex; /* Flexbox for centering icon */
+    align-items: center; /* Vertical centering */
+    justify-content: center; /* Horizontal centering */
+    border: 1px solid var(--border-soft); /* Subtle border */
+}
+
+/* Icon styling inside feature icon container */
+.auth-feature-icon svg {
+    width: 24px; /* Icon width */
+    height: 24px; /* Icon height */
+    color: var(--accent-primary); /* Primary accent color */
+}
+
+/* Feature text content container */
+.auth-feature-content h3 {
+    color: var(--text-main); /* Primary text color */
+    font-size: 1rem; /* Font size */
+    font-weight: 600; /* Semi-bold weight */
+    margin-bottom: 0.25rem; /* Spacing below title */
+}
+
+.auth-feature-content p {
+    color: var(--text-muted); /* Muted text color */
+    font-size: 0.9rem; /* Small font size */
+    margin: 0; /* Remove default margins */
+}
+
+/* =========================
+   Auth Messages & Errors
+========================= */
+/* Base styling for authentication messages */
+.auth-message {
+    padding: 0.75rem 1rem; /* Internal spacing */
+    border-radius: var(--radius-sm); /* Small rounded corners */
+    display: flex; /* Flexbox for icon and text */
+    align-items: center; /* Vertical alignment */
+    gap: 0.5rem; /* Spacing between icon and text */
+    margin-bottom: 1.5rem; /* Spacing below message */
+    font-size: 0.9rem; /* Small font size */
+}
+
+/* Success message variant */
+.auth-message.success {
+    background-color: rgba(155, 92, 255, 0.1); /* Light purple background */
+    border: 1px solid var(--accent-secondary); /* Purple border */
+    color: var(--accent-secondary); /* Purple text */
+}
+
+/* Error message variant */
+.auth-message.error {
+    background-color: rgba(255, 94, 0, 0.1); /* Light orange background */
+    border: 1px solid var(--brand-primary); /* Orange border */
+    color: var(--brand-primary); /* Orange text */
+}
+
+/* Icon styling in messages */
+.auth-message svg {
+    width: 20px; /* Icon width */
+    height: 20px; /* Icon height */
+    flex-shrink: 0; /* Prevent icon from shrinking */
+}
+
+/* =========================
+   Form Hint Text
+========================= */
+/* Hint text for form fields */
+.auth-form-hint {
+    color: var(--text-muted); /* Muted text color */
+    font-size: 0.8rem; /* Very small font size */
+    margin-top: 0.25rem; /* Small spacing above */
+    display: block; /* Block display */
+}
+
+/* =========================
+   Responsive Design
+========================= */
+
+/* Media query for tablet and mobile screens (max-width: 768px) */
+@media (max-width: 768px) {
+    /* Switch from row to column layout on mobile */
+    .auth-layout {
+        flex-direction: column; /* Stack columns vertically */
+        gap: 2rem; /* Reduced spacing between sections */
+    }
+    
+    /* Center align content in info column on mobile */
+    .auth-info-column {
+        text-align: center; /* Center align text */
+    }
+    
+    /* Reduce font size for mobile */
+    .auth-info-column h1 {
+        font-size: 2rem; /* Smaller font size for mobile */
+    }
+    
+    /* Adjust paragraph styling for mobile */
+    .auth-info-column p {
+        margin: 0 auto 2rem auto; /* Center with bottom margin */
+    }
+    
+    /* Center feature items on mobile */
+    .auth-feature {
+        justify-content: center; /* Center horizontally */
+    }
+    
+    /* Make form column flexible on mobile */
+    .auth-form-column {
+        flex: 0 0 auto; /* Remove fixed flex basis */
+        width: 100%; /* Full width */
+        max-width: 400px; /* Limit maximum width */
+    }
+    
+    /* Reduce card padding on mobile */
+    .auth-card {
+        padding: 1.5rem; /* Smaller padding on mobile */
+    }
+}
+
+/* =========================
+   Loading States
+========================= */
+/* Loading spinner for authentication processes */
+.auth-loading-spinner {
+    width: 24px; /* Spinner width */
+    height: 24px; /* Spinner height */
+    animation: auth-spin 1s linear infinite; /* Continuous rotation */
+    display: inline-block; /* Inline display */
+    vertical-align: middle; /* Vertical alignment */
+    margin-right: 0.5rem; /* Spacing to the right */
+}
+
+/* Keyframes for spinner rotation animation */
+@keyframes auth-spin {
+    0% { transform: rotate(0deg); } /* Starting position */
+    100% { transform: rotate(360deg); } /* Full rotation */
+}
+
+/* =========================
+   Input with Icon
+========================= */
+/* Container for input field with icon */
+.auth-input-with-icon {
+    position: relative; /* For positioning icon absolutely */
+}
+
+/* Icon inside input field */
+.auth-input-icon {
+    position: absolute; /* Absolute positioning */
+    left: 1rem; /* Position from left edge */
+    top: 50%; /* Vertical centering */
+    transform: translateY(-50%); /* Precise vertical centering */
+    pointer-events: none; /* Allow clicks to pass through to input */
+}
+
+/* Icon styling */
+.auth-input-icon svg {
+    width: 20px; /* Icon width */
+    height: 20px; /* Icon height */
+    color: var(--text-muted); /* Muted icon color */
+}
+
+/* Adjust input padding to accommodate icon */
+.auth-input-with-icon .auth-form-input {
+    padding-left: 3rem; /* Extra padding on left for icon */
+}
+
+/* =========================
+New Booking Page Styles
+========================= */
+    /* Additional styles for booking form */
+    /* Wrapper for select elements */
+    .select-wrapper {
+        position: relative; /* For custom select styling */
+    }
+    
+    /* Custom styling for select inputs */
+    select.auth-form-input {
+        appearance: none; /* Remove default styling */
+        -webkit-appearance: none; /* Remove default styling in WebKit */
+        -moz-appearance: none; /* Remove default styling in Firefox */
+        cursor: pointer; /* Pointer cursor */
+    }
+    
+    /* Ensure date input follows dark theme */
+    input[type="date"].auth-form-input {
+        color-scheme: dark; /* Dark color scheme for date picker */
+    }
+    
+    /* Button icon alignment and animation */
+    .button svg {
+        transition: transform 0.3s ease; /* Smooth transform transition */
+    }
+    
+    /* Icon animation on button hover */
+    .button:hover svg {
+        transform: translateX(4px); /* Move icon to the right on hover */
+    }
+
+/* =========================
+   Booking Confirmation Styles
+========================= */
+    /* Component wrapper for bookings table */
+    .bookings-table-component {
+        width: 100%; /* Full width */
+    }
+    
+    /* Main table styling */
+    .bookings-table {
+        width: 100%; /* Full width */
+        border-collapse: collapse; /* Remove spacing between cells */
+        background: var(--bg-card); /* Background color */
+        border-radius: var(--radius-md); /* Rounded corners */
+        overflow: hidden; /* Clip content to rounded corners */
+    }
+    
+    /* Table header styling */
+    .bookings-table thead {
+        background: var(--bg-surface); /* Different background for header */
+    }
+    
+    /* Table header cell styling */
+    .bookings-table th {
+        color: var(--text-main); /* Primary text color */
+        font-weight: 600; /* Bold font weight */
+        padding: 1rem; /* Cell padding */
+        text-align: left; /* Left aligned text */
+        border-bottom: 2px solid var(--border-soft); /* Bottom border */
+    }
+    
+    /* Table data cell styling */
+    .bookings-table td {
+        padding: 1rem; /* Cell padding */
+        border-bottom: 1px solid var(--border-soft); /* Bottom border */
+        color: var(--text-main); /* Primary text color */
+    }
+    
+    /* Remove border from last row */
+    .bookings-table tr:last-child td {
+        border-bottom: none; /* No border on last row */
+    }
+    
+    /* Hover effect for table rows */
+    .bookings-table tr:hover {
+        background: rgba(255, 122, 217, 0.05); /* Light pink background on hover */
+    }
+    
+    /* Strong text within table */
+    .bookings-table strong {
+        color: var(--accent-primary); /* Primary accent color */
+    }
+    
+    /* Location text styling */
+    .bookings-table .location {
+        font-size: 0.85rem; /* Small font size */
+        color: var(--text-muted); /* Muted text color */
+        margin-top: 0.25rem; /* Small spacing above */
+    }
+    
+    /* Ticket count badge styling */
+    .ticket-count {
+        background: var(--accent-secondary); /* Purple background */
+        color: white; /* White text */
+        width: 24px; /* Fixed width */
+        height: 24px; /* Fixed height */
+        border-radius: 50%; /* Circular shape */
+        display: inline-flex; /* Flexbox for centering */
+        align-items: center; /* Vertical centering */
+        justify-content: center; /* Horizontal centering */
+        font-weight: 600; /* Bold font weight */
+    }
+    
+    /* Generic tag styling */
+    .tag {
+        display: inline-block; /* Inline block display */
+        padding: 0.25rem 0.75rem; /* Internal spacing */
+        border-radius: 20px; /* Pill shape */
+        font-size: 0.85rem; /* Small font size */
+        background: rgba(255, 255, 255, 0.05); /* Semi-transparent background */
+        color: var(--text-muted); /* Muted text color */
+        border: 1px solid var(--border-soft); /* Border */
+    }
+    
+    /* Success variant for tags */
+    .tag.success {
+        background: rgba(155, 92, 255, 0.15); /* Light purple background */
+        color: var(--accent-secondary); /* Purple text */
+        border-color: rgba(155, 92, 255, 0.3); /* Purple border */
+    }
+    
+    /* Empty bookings state styling */
+    .empty-bookings {
+        text-align: center; /* Center align content */
+        padding: 2rem; /* Internal spacing */
+        color: var(--text-muted); /* Muted text color */
+    }
+    
+    /* Icon styling in empty state */
+    .empty-bookings svg {
+        opacity: 0.3; /* Low opacity for subtle icon */
+        margin-bottom: 1rem; /* Spacing below icon */
+    }
+    
+/* =========================
+Profile Page Styles
+========================= */
+    /* Main profile container */
+    .profile-container {
+        max-width: 1200px; /* Maximum width */
+        margin: 0 auto; /* Center horizontally */
+        padding: 2rem 1.5rem; /* Internal spacing */
+    }
+    
+    /* Profile header section */
+    .profile-header {
+        text-align: center; /* Center align content */
+        margin-bottom: 2rem; /* Spacing below header */
+    }
+    
+    /* Main title in profile header */
+    .profile-header .title {
+        color: var(--accent-primary); /* Primary accent color */
+        font-size: 2.5rem; /* Large font size */
+        margin-bottom: 0.5rem; /* Spacing below title */
+    }
+    
+    /* Subtitle in profile header */
+    .profile-header .subtitle {
+        color: var(--text-muted); /* Muted text color */
+    }
+    
+    /* Profile action buttons container */
+    .profile-actions {
+        display: flex; /* Flexbox layout */
+        justify-content: center; /* Center buttons horizontally */
+        margin-bottom: 3rem; /* Spacing below actions */
+    }
+    
+    /* Profile action button styling */
+    .profile-actions .button {
+        padding: 0.75rem 2rem; /* Button padding */
+        font-size: 1.1rem; /* Larger font size */
+    }
+    
+    /* Icon in profile action button */
+    .profile-actions .button svg {
+        margin-right: 0.5rem; /* Spacing between icon and text */
+    }
+    
+    /* Bookings section container */
+    .bookings-section {
+        background: var(--bg-surface); /* Background color */
+        border-radius: var(--radius-lg); /* Large rounded corners */
+        padding: 2rem; /* Internal spacing */
+        margin-bottom: 2rem; /* Spacing below section */
+        border: 1px solid var(--border-soft); /* Border */
+    }
+    
+    /* Section header with title and stats */
+    .section-header {
+        display: flex; /* Flexbox layout */
+        justify-content: space-between; /* Space between title and stats */
+        align-items: center; /* Vertical alignment */
+        margin-bottom: 1.5rem; /* Spacing below header */
+    }
+    
+    /* Section title styling */
+    .section-title {
+        color: var(--text-main); /* Primary text color */
+        font-size: 1.5rem; /* Font size */
+        font-weight: 600; /* Semi-bold weight */
+    }
+    
+    /* Bookings statistics container */
+    .bookings-stats {
+        display: flex; /* Flexbox layout */
+        gap: 1.5rem; /* Spacing between stats */
+    }
+    
+    /* Individual statistic item */
+    .bookings-stats .stat {
+        color: var(--text-muted); /* Muted text color */
+        font-size: 0.9rem; /* Small font size */
+    }
+    
+    /* Highlighted number in statistic */
+    .bookings-stats .stat strong {
+        color: var(--accent-primary); /* Primary accent color */
+        font-size: 1.2rem; /* Larger font size */
+    }
+        
+    /* Media query for mobile responsiveness */
+    @media (max-width: 768px) {
+        /* Adjust profile container for mobile */
+        .profile-container {
+            padding: 1rem; /* Reduced padding on mobile */
+        }
+        
+        /* Reduce title size on mobile */
+        .profile-header .title {
+            font-size: 2rem; /* Smaller font size for mobile */
+        }
+        
+        /* Stack section header elements on mobile */
+        .section-header {
+            flex-direction: column; /* Stack vertically */
+            align-items: flex-start; /* Align to start */
+            gap: 1rem; /* Spacing between stacked items */
+        }
+        
+        /* Adjust stats layout for mobile */
+        .bookings-stats {
+            width: 100%; /* Full width */
+            justify-content: space-between; /* Distribute stats evenly */
+        }
+        
+        /* Single column layout for parks grid on mobile */
+        .parks-grid {
+            grid-template-columns: 1fr; /* Single column */
+        }
+    }
+/* =========================
+Health & Safety Guidelines Page
+========================= */
+.page-header {
+    text-align: center;
+    margin-bottom: 3rem;
+    padding-bottom: 1.5rem;
+    border-bottom: 2px solid var(--brand-primary);
+}
+
+.page-header h1 {
+    color: var(--brand-primary);
+    margin-bottom: 0.5rem;
+}
+
+.page-header .subtitle {
+    color: var(--text-muted);
+    font-size: 0.9rem;
+}
+
+.guidelines-content {
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 2rem;
+    background: var(--card-bg);
+    border-radius: 8px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+}
+
+.guideline-section {
+    margin-bottom: 2.5rem;
+}
+
+.guideline-section h2 {
+    color: var(--text-primary);
+    margin-bottom: 1rem;
+    font-size: 1.3rem;
+    border-left: 4px solid var(--brand-primary);
+    padding-left: 1rem;
+}
+
+.guideline-section ul {
+    list-style-type: none;
+    padding-left: 1.5rem;
+}
+
+.guideline-section li {
+    margin-bottom: 0.8rem;
+    position: relative;
+}
+
+.guideline-section li:before {
+    content: "•";
+    color: var(--brand-primary);
+    font-weight: bold;
+    position: absolute;
+    left: -1rem;
+}
+
+.acknowledgment-box {
+    margin-top: 3rem;
+    padding: 1.5rem;
+    background: var(--background-alt);
+    border-radius: 6px;
+    border-left: 4px solid var(--brand-primary);
+    text-align: center;
+}
+
+.acknowledgment-box p {
+    margin-bottom: 1.5rem;
+    font-style: italic;
+}
+
+.acknowledgment-box .btn {
+    min-width: 200px;
+}

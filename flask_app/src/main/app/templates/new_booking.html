@@ -1,81 +1,96 @@
-{% extends "base.html" %}
+{% extends "layouts/base.html" %}
 
 {% block content %}
-<div class="column is-6 is-offset-3">
-    <h1 class="title has-text-centered">New Booking</h1>
-
-    <div class="box" style="font-size: 1.2rem;">
-        <form method="POST" action="/booking">
-            <!-- Park -->
-            <div class="field is-horizontal">
-                <div class="field-label is-normal">
-                    <label class="label">Park</label>
+<div class="container">
+    <div class="auth-card-wrapper">
+        <div class="auth-card">
+            <!-- Card Header -->
+            <div class="auth-card-header">
+                <div class="auth-card-icon">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M4.5 6.375a4.125 4.125 0 118.25 0 4.125 4.125 0 01-8.25 0zM14.25 8.625a3.375 3.375 0 116.75 0 3.375 3.375 0 01-6.75 0zM1.5 19.125a7.125 7.125 0 0114.25 0v.003l-.001.119a.75.75 0 01-.363.63 13.067 13.067 0 01-6.761 1.873c-2.472 0-4.786-.684-6.76-1.873a.75.75 0 01-.364-.63l-.001-.122zM17.25 19.128l-.001.144a2.25 2.25 0 01-.233.96 10.088 10.088 0 005.06-1.01.75.75 0 00.42-.643 4.875 4.875 0 00-6.957-4.611 8.586 8.586 0 011.71 5.157v.003z"/>
+                    </svg>
                 </div>
-                <div class="field-body">
-                    <div class="field">
-                        <div class="control" style="max-width: 50%;">
-                            <div class="select is-fullwidth">
-                                <select name="park_id">
-                                    {% for park in parks %}
-                                    <option value="{{ park.park_id }}">{{ park.name }}</option>
-                                    {% endfor %}
-                                </select>
-                            </div>
+                <h1 class="auth-card-title">New Booking</h1>
+                <p class="auth-card-subtitle">Select a park and date for your visit</p>
+            </div>
+
+            <!-- Booking Form -->
+            <form method="POST" action="{{ url_for('main.booking') }}" class="auth-form">
+                <!-- Park Selection -->
+                <div class="auth-form-group">
+                    <label class="auth-form-label">Park</label>
+                    <div class="select-wrapper">
+                        <select name="park_id" class="auth-form-input" required style="padding-right: 2.5rem;">
+                            <option value="" disabled selected>Choose a park...</option>
+                            {% for park in parks %}
+                            <option value="{{ park.park_id }}">{{ park.name }} - {{ park.location }}</option>
+                            {% endfor %}
+                        </select>
+                        <div class="select-arrow" style="position: absolute; right: 1rem; top: 50%; transform: translateY(-50%); pointer-events: none;">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="var(--text-muted)" viewBox="0 0 16 16">
+                                <path fill-rule="evenodd" d="M1.646 4.646a.5.5 0 0 1 .708 0L8 10.293l5.646-5.647a.5.5 0 0 1 .708.708l-6 6a.5.5 0 0 1-.708 0l-6-6a.5.5 0 0 1 0-.708z"/>
+                            </svg>
                         </div>
                     </div>
                 </div>
-            </div>
 
-            <!-- Date -->
-            <div class="field is-horizontal">
-                <div class="field-label is-normal">
-                    <label class="label">Date</label>
+                <!-- Date (Day Only) -->
+                <div class="auth-form-group">
+                    <label class="auth-form-label">Visit Date</label>
+                    <input class="auth-form-input" 
+                           type="date" 
+                           name="date" 
+                           required
+                           min="{{ today }}">
+                    <small class="auth-form-hint">Select the day of your visit</small>
                 </div>
-                <div class="field-body">
-                    <div class="field">
-                        <div class="control" style="max-width: 50%;">
-                            <input class="input" type="datetime-local" name="date">
-                        </div>
+
+                <!-- Number of Tickets -->
+                <div class="auth-form-group">
+                    <label class="auth-form-label">Number of Tickets</label>
+                    <input class="auth-form-input" 
+                           type="number" 
+                           name="num_tickets" 
+                           value="1" 
+                           min="1" 
+                           max="10" 
+                           required>
+                    <small class="auth-form-hint">Maximum 10 tickets per booking</small>
+                </div>
+
+                <!-- Health Safety Agreement -->
+                <div class="auth-form-group">
+                    <div class="auth-checkbox">
+                        <input type="checkbox" id="health_safety" name="health_safety" required>
+                        <label for="health_safety">
+                            I acknowledge and agree to the <a href="{{ url_for('main.health_safety_guidelines') }}" target="_blank" class="terms-link">health & safety guidelines</a>
+                        </label>
                     </div>
                 </div>
-            </div>
 
-            <!-- Tickets -->
-            <div class="field is-horizontal">
-                <div class="field-label is-normal">
-                    <label class="label">Tickets</label>
+                <!-- Submit Button -->
+                <div class="auth-form-group">
+                    <button type="submit" class="button auth-submit-button">
+                        <span>Confirm Booking</span>
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-left: 0.5rem;">
+                            <path d="M5 12h14M12 5l7 7-7 7"/>
+                        </svg>
+                    </button>
                 </div>
-                <div class="field-body">
-                    <div class="field">
-                        <div class="control" style="max-width: 50%;">
-                            <input class="input" type="number" name="num_tickets" value="1" min="1">
-                        </div>
-                    </div>
-                </div>
+            </form>
+
+            <!-- Back Link -->
+            <div class="auth-card-links">
+                <a href="{{ url_for('main.profile') }}" class="auth-card-link">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right: 0.5rem; vertical-align: middle;">
+                        <path d="M19 12H5M12 19l-7-7 7-7"/>
+                    </svg>
+                    Back to Profile
+                </a>
             </div>
-
-            <!-- Health Safety -->
-            <div class="field mt-3">
-                <label class="checkbox">
-                    <input type="checkbox" name="health_safety">
-                    I acknowledge health & safety warnings
-                </label>
-            </div>
-
-            <!-- Submit Button -->
-            <div class="field mt-4">
-                <button class="button is-danger is-fullwidth is-medium">
-                    Confirm Booking
-                </button>
-            </div>
-
-        </form>
-    </div>
-
-    <div class="mt-4">
-        <a href="{{ url_for('main.profile') }}" class="button is-info is-normal">
-            ← Back to Profile
-        </a>
+        </div>
     </div>
 </div>
+
 {% endblock %}
