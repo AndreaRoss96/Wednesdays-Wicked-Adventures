@@ -100,9 +100,9 @@ document.addEventListener('DOMContentLoaded', function() {
         e.preventDefault();
         
         // Get form values
-        const email = emailInput.value;
-        const password = passwordInput.value;
-        
+        const email = emailInput.value.trim();
+        const password = passwordInput.value.trim();
+    
         // Validate form
         const validation = validateForm(email, password);
         if (!validation.isValid) {
