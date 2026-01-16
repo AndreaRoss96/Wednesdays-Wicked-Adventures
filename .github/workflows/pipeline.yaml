@@ -22,7 +22,6 @@ jobs:
       python-version: "3.11"
       working-directory: "flask_app/src"
       fail-on-issues: false  # For testing, we won't fail
-    timeout-minutes: 10
 
   # 2. Build Application
   build-app:
@@ -31,7 +30,6 @@ jobs:
     with:
       python-version: "3.11"
       working-directory: "flask_app/src"
-    timeout-minutes: 15
 
   # 3. Test REAL Application
   test-app:
@@ -40,7 +38,6 @@ jobs:
     with:
       python-version: "3.11"
       working-directory: "flask_app/src"
-    timeout-minutes: 20
 
   # 4. Pipeline Summary
   pipeline-summary:
