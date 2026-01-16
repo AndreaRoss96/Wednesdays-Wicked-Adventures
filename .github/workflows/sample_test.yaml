@@ -1,0 +1,150 @@
+# ============================================================
+# SAMPLE TEST WORKFLOW TEMPLATE
+#
+# PURPOSE
+# -------
+# This workflow is NOT a real test.
+# It is the OFFICIAL TEMPLATE and CONTRACT for creating new
+# test workflows in this repository.
+#
+# How to use:
+# 1. Copy this file
+# 2. Rename it to: test-<your-test-name>.yaml
+# 3. Replace the example steps with your real test logic
+#
+# IMPORTANT RULES
+# ---------------
+# - DO NOT add triggers like `push` or `pull_request`
+# - This workflow MUST be called only by `pipeline.yaml`
+# - Use `workflow_call` and follow the input contract
+# - Keep ONE job per test workflow
+# ============================================================
+
+name: Sample Test Template
+
+# ------------------------------------------------------------
+# This workflow is reusable and can only be invoked
+# by another workflow (the pipeline orchestrator).
+# ------------------------------------------------------------
+on:
+  workflow_call:
+    inputs:
+
+      # ------------------------------------------------------
+      # STANDARD INPUTS (REQUIRED FOR ALL TEST WORKFLOWS)
+      # ------------------------------------------------------
+
+      python-version:
+        description: "Python version to use for this test"
+        required: true
+        type: string
+
+      working-directory:
+        description: "Directory where the project or test should run"
+        required: true
+        type: string
+
+      fail-on-issues:
+        description: "If true, the test must fail the pipeline on issues"
+        required: true
+        type: boolean
+
+      # ------------------------------------------------------
+      # OPTIONAL / EXAMPLE INPUTS
+      # ------------------------------------------------------
+      # These inputs show how a test can define its own
+      # configuration while still respecting the contract.
+      # ------------------------------------------------------
+
+      config-file:
+        description: "Optional configuration file for the test tool"
+        required: false
+        type: string
+        default: ""
+
+      scan-path:
+        description: "Optional path to scan or test"
+        required: false
+        type: string
+        default: "."
+
+# ------------------------------------------------------------
+# JOBS
+# Each test workflow MUST define exactly ONE job.
+# The job name should reflect the test purpose.
+# ------------------------------------------------------------
+jobs:
+  sample-test:
+    runs-on: ubuntu-latest
+
+    steps:
+      # ------------------------------------------------------
+      # Step 1: Checkout repository
+      # Mandatory for almost all tests
+      # ------------------------------------------------------
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # ------------------------------------------------------
+      # Step 2: Set up runtime (example with Python)
+      #
+      # Even if your test does not use Python,
+      # you MUST accept the input for consistency.
+      # You may ignore it internally if not needed.
+      # ------------------------------------------------------
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ inputs.python-version }}
+
+      # ------------------------------------------------------
+      # Step 3: Install tool dependencies (EXAMPLE)
+      #
+      # Replace this with the installation steps
+      # required by your specific test.
+      # ------------------------------------------------------
+      - name: Install test dependencies
+        working-directory: ${{ inputs.working-directory }}
+        run: |
+          echo "Install test-specific dependencies here"
+
+      # ------------------------------------------------------
+      # Step 4: Run the test (EXAMPLE)
+      #
+      # This is where the real test logic goes.
+      # The test should produce a clear success or failure.
+      # ------------------------------------------------------
+      - name: Run test
+        working-directory: ${{ inputs.working-directory }}
+        run: |
+          echo "Run your test here"
+          echo "Config file: ${{ inputs.config-file }}"
+          echo "Scan path: ${{ inputs.scan-path }}"
+
+      # ------------------------------------------------------
+      # Step 5: Enforce failure policy
+      #
+      # If fail-on-issues is true, this step MUST
+      # exit with a non-zero code when issues are found.
+      #
+      # Replace the example logic with real checks.
+      # ------------------------------------------------------
+      - name: Enforce test policy
+        if: ${{ inputs.fail-on-issues }}
+        run: |
+          echo "Evaluating test results..."
+          echo "Failing pipeline because fail-on-issues=true"
+          # exit 1  # Uncomment in real tests when issues are detected
+
+      # ------------------------------------------------------
+      # Step 6: Upload artifacts (OPTIONAL BUT RECOMMENDED)
+      #
+      # Use this to upload reports, logs, or result files.
+      # ------------------------------------------------------
+      - name: Upload test artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: sample-test-artifacts
+          path: |
+            ./example-results.json
