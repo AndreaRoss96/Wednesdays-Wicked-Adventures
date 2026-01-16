@@ -150,7 +150,7 @@ class UserView(AppModelView):
         last_name=dict(validators=[DataRequired()]),
         email=dict(validators=[DataRequired()]),
         password=dict(validators=[DataRequired()]),
-        role_id=dict(validators=[DataRequired()])
+        role=dict(validators=[DataRequired()])
     )
 
     def on_model_change(self, form, model, is_created):
