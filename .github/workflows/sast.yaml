@@ -84,17 +84,17 @@ jobs:
           
           if [ ! -f "bandit-results.json" ]; then
             echo "❌ No scan results found"
-            echo "::set-output name=high_count::0"
-            echo "::set-output name=medium_count::0"
-            echo "::set-output name=low_count::0"
-            echo "::set-output name=has_critical::false"
+            echo "high_count=0" >> $GITHUB_OUTPUT
+            echo "medium_count=0" >> $GITHUB_OUTPUT
+            echo "low_count=0" >> $GITHUB_OUTPUT
+            echo "has_critical=false" >> $GITHUB_OUTPUT
             exit 0
           fi
           
-          # Count issues using Python (more reliable than bash)
-          python -c "
+          # Count issues usando Python com HEREDOC correto
+          python3 << 'EOF'
 import json
-import sys
+import os
 
 try:
     with open('bandit-results.json', 'r') as f:
@@ -116,20 +116,23 @@ try:
         else:
             undefined += 1
     
-    print(f'::set-output name=high_count::{high}')
-    print(f'::set-output name=medium_count::{medium}')
-    print(f'::set-output name=low_count::{low}')
-    print(f'::set-output name=has_critical::{high + medium > 0}')
+    # Right syntax for GitHub Actions
+    with open(os.environ['GITHUB_OUTPUT'], 'a') as fh:
+        print(f'high_count={high}', file=fh)
+        print(f'medium_count={medium}', file=fh)
+        print(f'low_count={low}', file=fh)
+        print(f'has_critical={high + medium > 0}', file=fh)
     
     print(f'HIGH: {high} | MEDIUM: {medium} | LOW: {low} | UNDEFINED: {undefined}')
     
 except Exception as e:
     print(f'Error reading results: {e}')
-    print('::set-output name=high_count::0')
-    print('::set-output name=medium_count::0')
-    print('::set-output name=low_count::0')
-    print('::set-output name=has_critical::false')
-"
+    with open(os.environ['GITHUB_OUTPUT'], 'a') as fh:
+        print('high_count=0', file=fh)
+        print('medium_count=0', file=fh)
+        print('low_count=0', file=fh)
+        print('has_critical=false', file=fh)
+EOF
       
       # ------------------------------------------------------
       # Step 6: Conditional failure based on results
@@ -164,6 +167,6 @@ except Exception as e:
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: bandit-results-${{ github.run_id }}
+          name: bandit-results-${{ github.run_number }}
           path: ${{ inputs.working-directory }}/bandit-results.json
           retention-days: 30
