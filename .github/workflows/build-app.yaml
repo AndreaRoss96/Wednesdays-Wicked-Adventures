@@ -23,7 +23,8 @@ jobs:
   build:
     name: Build Application
     runs-on: ubuntu-latest
-
+    timeout-minutes: 15
+    
     steps:
       # Step 1: Checkout code
       - name: Checkout repository
@@ -35,21 +36,40 @@ jobs:
         with:
           python-version: ${{ inputs.python-version }}
 
-      # Step 3: Install dependencies
+      # Step 3: Cache pip dependencies
+      - name: Cache pip dependencies
+        id: cache-pip
+        uses: actions/cache@v3
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements.txt') }}
+          restore-keys: |
+            ${{ runner.os }}-pip-
+
+      # Step 4: Install dependencies
       - name: Install dependencies
         working-directory: ${{ inputs.working-directory }}
         run: |
           python -m pip install --upgrade pip
-          if [ -f requirements.txt ]; then
+          
+          # Only install if cache is not restored
+          if [ -f requirements.txt ] && [ "${{ steps.cache-pip.outputs.cache-hit }}" != 'true' ]; then
+            echo "Cache miss: installing dependencies from requirements.txt"
             pip install -r requirements.txt
+          elif [ -f requirements.txt ]; then
+            echo "Cache hit: verifying dependencies"
+            pip install -r requirements.txt
+          else
+            echo "No requirements.txt found, installing project in development mode"
+            pip install -e .
           fi
 
-      # Step 4: Upload artifacts (optional but recommended)
-      # This allows downstream jobs (tests) to reuse the environment
+      # Step 5: Upload artifacts (optional but recommended)
       - name: Upload build artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: build-env
+          name: build-artifacts
           path: |
             ${{ inputs.working-directory }}/
-            # optionally include venv or other generated files
+            ~/.cache/pip/
+          retention-days: 7

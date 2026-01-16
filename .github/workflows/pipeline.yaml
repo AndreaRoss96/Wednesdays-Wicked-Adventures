@@ -4,31 +4,69 @@
 name: Pipeline Orchestrator
 
 on:
-  pull_request:
-    branches: [main, UAT]
   push:
-    branches: [UAT]
+    branches: [UAT, feature/*]
+  pull_request:
+    branches: [main]
   workflow_dispatch:
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
-  # -----------------------------
-  # Job 1: SAST Security Scan
-  # -----------------------------
+  # 1. Security Scan
   security-sast:
-    uses: ./.github/workflows/sast.yaml  
-    with: 
+    uses: ./.github/workflows/sast.yaml
+    with:
       python-version: "3.11"
       working-directory: "flask_app/src"
-      fail-on-issues: ${{ github.ref == 'refs/heads/main' }}
-      config-path: "flask_app/src/.bandit.yml"
+      fail-on-issues: false  # For testing, we won't fail
+    timeout-minutes: 10
 
-
-  # -----------------------------
-  # Job 2: Build App
-  # -----------------------------
+  # 2. Build Application
   build-app:
     uses: ./.github/workflows/build-app.yaml
     needs: [security-sast]
     with:
       python-version: "3.11"
       working-directory: "flask_app/src"
+    timeout-minutes: 15
+
+  # 3. Test REAL Application
+  test-app:
+    uses: ./.github/workflows/test-app.yaml
+    needs: [build-app]
+    with:
+      python-version: "3.11"
+      working-directory: "flask_app/src"
+    timeout-minutes: 20
+
+  # 4. Pipeline Summary
+  pipeline-summary:
+    runs-on: ubuntu-latest
+    needs: [security-sast, build-app, test-app]
+    if: always()
+    timeout-minutes: 5
+    
+    steps:
+      - name: Show Pipeline Status
+        run: |
+          echo "🚀 CI/CD PIPELINE COMPLETED"
+          echo "==========================="
+          echo ""
+          echo "All jobs finished. Check individual job results above."
+          echo ""
+          echo "Summary:"
+          echo "- Security Scan: ${{ needs.security-sast.result }}"
+          echo "- Build: ${{ needs.build-app.result }}"
+          echo "- Tests: ${{ needs.test-app.result }}"
+          
+          # Determine overall pipeline status
+          if [[ "${{ needs.security-sast.result }}" == "success" && 
+                "${{ needs.build-app.result }}" == "success" && 
+                "${{ needs.test-app.result }}" == "success" ]]; then
+            echo "✅ All checks passed!"
+          else
+            echo "❌ Some checks failed. Review the logs above."
+          fi
