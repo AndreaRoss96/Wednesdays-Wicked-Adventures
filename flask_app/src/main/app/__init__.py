@@ -2,7 +2,7 @@ from flask import Flask, render_template
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager
 from flask_admin import Admin
-from flask_admin.contrib.sqla import ModelView
+# from flask_admin.contrib.sqla import ModelView
 from config import config
 
 ## to enforce FK in SQLite3
@@ -27,7 +27,7 @@ def create_app(config_name="development"):
     db.init_app(app)
     config[config_name].init_app(app)
 
-    from .models import User, Role, Booking, Park, AppIndexView, UserView, RoleView, BookingView, ParkView
+    from .models import User, Role, Booking, Park, Message, AppIndexView, UserView, RoleView, BookingView, ParkView, MessageView
     
     # Configure Flask-Login
     login_manager = LoginManager()
@@ -45,6 +45,7 @@ def create_app(config_name="development"):
     admin.add_view(RoleView(Role, db.session))
     admin.add_view(BookingView(Booking, db.session))
     admin.add_view(ParkView(Park, db.session))
+    admin.add_view(MessageView(Message, db.session))
     
     # Register Blueprints
     ## UI Routes

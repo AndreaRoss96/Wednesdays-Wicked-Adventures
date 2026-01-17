@@ -1,7 +1,7 @@
 from datetime import datetime
-from flask import Blueprint, render_template, request, redirect, url_for
+from flask import Blueprint, render_template, request, redirect, url_for, flash
 from flask_login import login_required, current_user
-from .models import Booking, Park
+from .models import Booking, Park, Message
 from . import db
 
 main = Blueprint('main', __name__)
@@ -52,3 +52,21 @@ def booking():
 def health_safety_guidelines():
     current_date = datetime.now()
     return render_template('health_safety_guidelines.html', now=current_date)
+
+@main.route('/contact', methods=['GET', 'POST'])
+def contact():
+    parks = Park.query.all()
+    if request.method == 'POST':
+        message = Message(
+            name=request.form['name'],
+            email=request.form['email'],
+            message=request.form['message']
+        )
+
+        db.session.add(message)
+        db.session.commit()
+
+        flash('Thank you for your message!')
+        return render_template('index.html', parks=parks)
+        
+    return render_template('index.html', parks=parks)
