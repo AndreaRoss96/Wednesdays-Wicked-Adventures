@@ -15,14 +15,14 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  # FASE 0: SMOKE TESTS (FAST CHECKS)
-    smoke-tests:
-      uses: ./.github/workflows/smoke-test.yaml
-      with:
-        python-version: "3.11"
-      working-directory: "flask_app/src"
-      
-  # 1. Security Scan
+  # FASE 0: SMOKE TEST (FAST CHECK - 2-3 minutos)
+  smoke-test:
+    uses: ./.github/workflows/smoke-test.yaml
+    with:
+      python-version: "3.11"
+      working-directory: "flask_app/src/main"
+
+  # FASE 1: SECURITY SCAN (em paralelo)
   security-sast:
     uses: ./.github/workflows/sast.yaml
     with:
@@ -30,15 +30,15 @@ jobs:
       working-directory: "flask_app/src"
       fail-on-issues: false  # For testing, we won't fail
 
-  # 2. Build Application
+  # FASE 2: BUILD APPLICATION
   build-app:
     uses: ./.github/workflows/build-app.yaml
-    needs: [smoke-test, security-sast]
+    needs: [smoke-test, security-sast]  
     with:
       python-version: "3.11"
       working-directory: "flask_app/src"
 
-  # 3. Test REAL Application
+  # FASE 3: TEST REAL APPLICATION
   test-app:
     uses: ./.github/workflows/test-app.yaml
     needs: [build-app]
@@ -46,10 +46,10 @@ jobs:
       python-version: "3.11"
       working-directory: "flask_app/src"
 
-  # 4. Pipeline Summary
+  # FASE 4: PIPELINE SUMMARY
   pipeline-summary:
     runs-on: ubuntu-latest
-    needs: [smoke-test, security-sast, build-app, test-app]
+    needs: [smoke-test, security-sast, build-app, test-app] 
     if: always()
     timeout-minutes: 2
     
