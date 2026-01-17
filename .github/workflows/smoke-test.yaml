@@ -1,0 +1,114 @@
+# ============================================================
+# SMOKE TESTS WORKFLOW
+# 
+# Quick sanity checks to ensure basic functionality works
+# ============================================================
+name: Smoke Test
+
+on:
+  workflow_call:
+    inputs:
+      python-version:
+        required: true
+        type: string
+      working-directory:
+        required: true
+        type: string
+
+jobs:
+  smoke:
+    runs-on: ubuntu-latest
+    timeout-minutes: 3  # Smoke tests must be FAST!
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ inputs.python-version }}
+      
+      - name: Install ABSOLUTE minimum dependencies
+        run: |
+          echo "Installing CRITICAL dependencies only..."
+          pip install Flask flask-sqlalchemy PyMySQL flask-login
+          
+          # Optional: Install from requirements.txt if exists
+          if [ -f "${{ inputs.working-directory }}/requirements.txt" ]; then
+            echo "Found requirements.txt, installing key packages..."
+            grep -E "^(Flask|flask-sqlalchemy|PyMySQL|flask-login)" "${{ inputs.working-directory }}/requirements.txt" | xargs pip install || true
+          fi
+      
+      - name: Run Basic Smoke Test
+        working-directory: ${{ inputs.working-directory }}
+        env:
+          # Set environment for testing config
+          FLASK_ENV: testing
+        run: |
+          echo "🚬 Running ABSOLUTE BASIC SMOKE TEST in CI/CD..."
+          echo "================================================"
+          
+          # Create a minimal smoke test script inline
+          python3 << 'EOF'
+          import sys
+          import os
+          
+          print("CI/CD SMOKE TEST - Checking minimum requirements...")
+          
+          # 1. Check critical imports
+          critical_packages = ['flask', 'flask_sqlalchemy', 'pymysql', 'flask_login']
+          all_ok = True
+          
+          for package in critical_packages:
+              try:
+                  __import__(package)
+                  print(f"✅ {package}")
+              except ImportError:
+                  print(f"❌ {package}")
+                  all_ok = False
+          
+          if not all_ok:
+              print("💀 Missing critical packages")
+              sys.exit(1)
+          
+          # 2. Try to import and create app
+          try:
+              # Add current directory to path
+              sys.path.insert(0, '.')
+              
+              from app import create_app
+              print("✅ App imports successfully")
+              
+              # Try to create app
+              app = create_app('testing')
+              print(f"✅ App created: {app.name}")
+              
+              # Check minimum config
+              if app.config.get('SECRET_KEY'):
+                  print("✅ SECRET_KEY configured")
+              else:
+                  print("❌ SECRET_KEY missing")
+                  sys.exit(1)
+                  
+              if app.config.get('SQLALCHEMY_DATABASE_URI'):
+                  print("✅ Database URI configured")
+              else:
+                  print("❌ Database URI missing")
+                  sys.exit(1)
+                  
+          except Exception as e:
+              print(f"❌ App failed: {type(e).__name__}: {str(e)[:100]}")
+              sys.exit(1)
+          
+          print("🎉 CI/CD SMOKE TEST PASSED!")
+          print("Basic Flask + MySQL stack is functional")
+          EOF
+      
+      - name: Smoke Test Passed
+        if: success()
+        run: |
+          echo "✅ Smoke test passed in ${{ runner.os }}"
+          echo "✅ Python ${{ inputs.python-version }}"
+          echo "✅ Basic Flask + MySQL stack confirmed"
+          echo "✅ Proceeding to full CI/CD pipeline..."

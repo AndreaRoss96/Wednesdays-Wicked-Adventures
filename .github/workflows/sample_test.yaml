@@ -1,0 +1,165 @@
+# ============================================================
+# SAMPLE TEST WORKFLOW TEMPLATE 
+#
+# PURPOSE
+# -------
+# This workflow is a TEMPLATE and CONTRACT for creating new
+# test workflows in this repository.
+#
+# How to use:
+# 1. Copy this file
+# 2. Rename it to: test-<your-test-name>.yaml
+# 3. Replace the example steps with your real test logic
+#
+# IMPORTANT RULES
+# ---------------
+# - DO NOT add triggers like push or pull_request
+# - This workflow MUST be invoked only by pipeline.yaml
+# - Use workflow_call and follow the input contract
+# - Keep ONE job per test workflow
+# ============================================================
+
+name: Sample Test Template
+
+on:
+  workflow_call:
+    inputs:
+      # ------------------------------------------------------
+      # STANDARD INPUTS (REQUIRED FOR ALL TEST WORKFLOWS)
+      # ------------------------------------------------------
+      python-version:
+        description: "Python version to use for this test"
+        required: true
+        type: string
+
+      working-directory:
+        description: "Directory where the project or test should run"
+        required: true
+        type: string
+
+      fail-on-issues:
+        description: "If true, the test must fail the pipeline on issues"
+        required: true
+        type: boolean
+
+      # ------------------------------------------------------
+      # OPTIONAL / EXAMPLE INPUTS
+      # ------------------------------------------------------
+      config-file:
+        description: "Optional configuration file for the test tool"
+        required: false
+        type: string
+        default: ""
+
+      scan-path:
+        description: "Optional path to scan or test"
+        required: false
+        type: string
+        default: "."
+
+      build-artifacts-path:
+        description: "Path to artifacts from the build job (optional)"
+        required: false
+        type: string
+        default: ""
+
+jobs:
+  sample-test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    
+    steps:
+      # ------------------------------------------------------
+      # Step 1: Checkout repository
+      # ------------------------------------------------------
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # ------------------------------------------------------
+      # Step 2: Set up Python
+      # ------------------------------------------------------
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ inputs.python-version }}
+
+      # ------------------------------------------------------
+      # Step 3: Cache pip dependencies
+      # ------------------------------------------------------
+      - name: Cache pip dependencies
+        id: cache-test-pip
+        uses: actions/cache@v3
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-test-pip-${{ hashFiles('**/requirements*.txt', '**/setup.py', '**/pyproject.toml') }}
+          restore-keys: |
+            ${{ runner.os }}-test-pip-
+
+      # ------------------------------------------------------
+      # Step 4: Download build artifacts (optional)
+      # ------------------------------------------------------
+      - name: Download build artifacts
+        if: ${{ inputs.build-artifacts-path != '' }}
+        uses: actions/download-artifact@v4
+        with:
+          name: build-artifacts
+          path: ${{ inputs.build-artifacts-path }}
+
+      # ------------------------------------------------------
+      # Step 5: Install test dependencies (example)
+      # ------------------------------------------------------
+      - name: Install test dependencies
+        working-directory: ${{ inputs.working-directory }}
+        run: |
+          echo "📦 Installing test-specific dependencies..."
+          
+          # Upgrade pip first
+          python -m pip install --upgrade pip
+          
+          # Install test dependencies
+          if [ -f "requirements-test.txt" ]; then
+            pip install -r requirements-test.txt
+          elif [ -f "requirements.txt" ]; then
+            pip install -r requirements.txt
+          fi
+          
+          # Install pytest if not already installed
+          pip install pytest pytest-cov
+
+      # ------------------------------------------------------
+      # Step 6: Run the test (example)
+      # ------------------------------------------------------
+      - name: Run test
+        working-directory: ${{ inputs.working-directory }}
+        run: |
+          echo "🧪 Running test..."
+          echo "Config file: ${{ inputs.config-file }}"
+          echo "Scan path: ${{ inputs.scan-path }}"
+          
+          # Example test command - replace with your actual test
+          python -m pytest ${{ inputs.scan-path }} -v --tb=short
+
+      # ------------------------------------------------------
+      # Step 7: Enforce failure policy
+      # ------------------------------------------------------
+      - name: Enforce test policy
+        if: ${{ inputs.fail-on-issues && failure() }}
+        run: |
+          echo "🔴 TEST FAILED"
+          echo "Failing pipeline because fail-on-issues=true"
+          echo "Review the test output above for details."
+          exit 1
+
+      # ------------------------------------------------------
+      # Step 8: Upload test artifacts (optional but recommended)
+      # ------------------------------------------------------
+      - name: Upload test artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: sample-test-artifacts
+          path: |
+            ${{ inputs.working-directory }}/.coverage
+            ${{ inputs.working-directory }}/pytest-results.xml
+            ${{ inputs.working-directory }}/test-report.html
+          retention-days: 7

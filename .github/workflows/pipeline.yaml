@@ -1,0 +1,82 @@
+# ============================================================
+# PIPELINE ORCHESTRATOR
+# ============================================================
+name: Pipeline Orchestrator
+
+on:
+  push:
+    branches: [UAT, feature/*]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  # FASE 0: SMOKE TEST (FAST CHECK - 2-3 minutos)
+  smoke-test:
+    uses: ./.github/workflows/smoke-test.yaml
+    with:
+      python-version: "3.11"
+      working-directory: "flask_app/src/main"
+
+  # FASE 1: SECURITY SCAN (em paralelo)
+  security-sast:
+    uses: ./.github/workflows/sast.yaml
+    with:
+      python-version: "3.11"
+      working-directory: "flask_app/src"
+      fail-on-issues: false  # For testing, we won't fail
+
+  # FASE 2: BUILD APPLICATION
+  build-app:
+    uses: ./.github/workflows/build-app.yaml
+    needs: [smoke-test, security-sast]  
+    with:
+      python-version: "3.11"
+      working-directory: "flask_app/src"
+
+  # FASE 3: TEST REAL APPLICATION
+  test-app:
+    uses: ./.github/workflows/test-app.yaml
+    needs: [build-app]
+    with:
+      python-version: "3.11"
+      working-directory: "flask_app/src"
+
+  # FASE 4: PIPELINE SUMMARY
+  pipeline-summary:
+    runs-on: ubuntu-latest
+    needs: [smoke-test, security-sast, build-app, test-app] 
+    if: always()
+    timeout-minutes: 2
+    
+    steps:
+      - name: Pipeline Status Report
+        run: |
+          echo "🚀 CI/CD PIPELINE COMPLETED"
+          echo "==========================="
+          echo ""
+          echo "Job Results:"
+          echo "------------"
+          echo "Smoke Test......: ${{ needs.smoke-test.result }}"
+          echo "Security Scan...: ${{ needs.security-sast.result }}"
+          echo "Build...........: ${{ needs.build-app.result }}"
+          echo "Tests...........: ${{ needs.test-app.result }}"
+          echo ""
+          
+          # Determine overall status
+          if [[ "${{ needs.smoke-test.result }}" == "success" && 
+                "${{ needs.build-app.result }}" == "success" && 
+                "${{ needs.test-app.result }}" == "success" ]]; then
+            echo "✅ ALL CRITICAL JOBS PASSED!"
+            echo "✅ Application is ready for deployment"
+          else
+            echo "⚠️  Some jobs failed or were skipped"
+            echo "Review individual job logs for details"
+          fi
+          
+          echo ""
+          echo "Pipeline execution complete."

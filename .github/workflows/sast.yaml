@@ -1,0 +1,118 @@
+# ============================================================
+# SAST SECURITY SCAN WORKFLOW (SIMPLIFIED)
+# ============================================================
+name: SAST Security Scan
+
+on:
+  workflow_call:
+    inputs:
+      python-version:
+        description: "Python version to use"
+        required: true
+        type: string
+        default: "3.11"
+      working-directory:
+        description: "Directory where the project resides"
+        required: true
+        type: string
+        default: "."
+      fail-on-issues:
+        description: "Fail the pipeline if high/medium issues found"
+        required: true
+        type: boolean
+        default: true
+      config-path:
+        description: "Path to Bandit config file"
+        required: false
+        type: string
+        default: ".bandit.yml"
+
+jobs:
+  bandit-scan:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    
+    steps:
+      # 1. Checkout
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      
+      # 2. Setup Python
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ inputs.python-version }}
+      
+      # 3. Cache pip dependencies
+      - name: Cache pip dependencies
+        id: cache-security-pip
+        uses: actions/cache@v3
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-security-pip-bandit-${{ hashFiles('**/requirements*.txt') }}
+          restore-keys: |
+            ${{ runner.os }}-security-pip-
+      
+      # 4. Install Bandit
+      - name: Install Bandit
+        run: |
+          python -m pip install --upgrade pip
+          pip install bandit
+      
+      # 5. Run Bandit Scan
+      - name: Run Bandit Security Scan
+        working-directory: ${{ inputs.working-directory }}
+        id: bandit-scan
+        continue-on-error: ${{ !inputs.fail-on-issues }}
+        run: |
+          # Check config file
+          if [ ! -f "${{ inputs.config-path }}" ]; then
+            echo "ℹ️  Using default Bandit settings"
+            CONFIG_ARG=""
+          else
+            CONFIG_ARG="-c ${{ inputs.config-path }}"
+          fi
+          
+          # Run Bandit with exit code control
+          echo "🔍 Running Bandit security scan..."
+          bandit $CONFIG_ARG -r . -f json -o bandit-results.json
+          
+          # Check if results file was created
+          if [ -f "bandit-results.json" ]; then
+            echo "✅ Scan completed successfully"
+            
+            # Simple count using jq (installed by default)
+            HIGH=$(jq '[.results[] | select(.issue_severity == "HIGH")] | length' bandit-results.json || echo "0")
+            MEDIUM=$(jq '[.results[] | select(.issue_severity == "MEDIUM")] | length' bandit-results.json || echo "0")
+            LOW=$(jq '[.results[] | select(.issue_severity == "LOW")] | length' bandit-results.json || echo "0")
+            
+            echo "📊 Scan Results:"
+            echo "   HIGH severity: $HIGH"
+            echo "   MEDIUM severity: $MEDIUM"
+            echo "   LOW severity: $LOW"
+            
+            if [ "$HIGH" -gt 0 ] || [ "$MEDIUM" -gt 0 ]; then
+              echo "⚠️  Found $HIGH HIGH and $MEDIUM MEDIUM severity issues"
+              
+              if [ "${{ inputs.fail-on-issues }}" = "true" ]; then
+                echo "❌ Failing pipeline due to security issues"
+                exit 1
+              else
+                echo "⚠️  Continuing pipeline (fail-on-issues is false)"
+              fi
+            else
+              echo "✅ No HIGH or MEDIUM severity issues found"
+            fi
+          else
+            echo "❌ No results file generated"
+            exit 1
+          fi
+      
+      # 6. Upload results (always, even if failed)
+      - name: Upload Security Scan Results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: security-scan-results
+          path: ${{ inputs.working-directory }}/bandit-results.json
+          retention-days: 30  # Keep security logs longer
