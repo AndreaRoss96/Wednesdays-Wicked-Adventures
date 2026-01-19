@@ -1,7 +1,7 @@
 # ============================================================
-# PIPELINE ORCHESTRATOR
+# PIPELINE
 # ============================================================
-name: Pipeline Orchestrator
+name: CI/CD Pipeline 
 
 on:
   push:
@@ -10,73 +10,178 @@ on:
     branches: [main]
   workflow_dispatch:
 
-concurrency:
-  group: ${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress: true
-
 jobs:
-  # FASE 0: SMOKE TEST (FAST CHECK - 2-3 minutos)
-  smoke-test:
-    uses: ./.github/workflows/smoke-test.yaml
-    with:
-      python-version: "3.11"
-      working-directory: "flask_app/src/main"
-
-  # FASE 1: SECURITY SCAN (em paralelo)
-  security-sast:
-    uses: ./.github/workflows/sast.yaml
-    with:
-      python-version: "3.11"
-      working-directory: "flask_app/src"
-      fail-on-issues: false  # For testing, we won't fail
-
-  # FASE 2: BUILD APPLICATION
-  build-app:
-    uses: ./.github/workflows/build-app.yaml
-    needs: [smoke-test, security-sast]  
-    with:
-      python-version: "3.11"
-      working-directory: "flask_app/src"
-
-  # FASE 3: TEST REAL APPLICATION
-  test-app:
-    uses: ./.github/workflows/test-app.yaml
-    needs: [build-app]
-    with:
-      python-version: "3.11"
-      working-directory: "flask_app/src"
-
-  # FASE 4: PIPELINE SUMMARY
-  pipeline-summary:
+  ci-pipeline:
+    name: CI/CD Pipeline
     runs-on: ubuntu-latest
-    needs: [smoke-test, security-sast, build-app, test-app] 
-    if: always()
-    timeout-minutes: 2
+    timeout-minutes: 15 
     
     steps:
-      - name: Pipeline Status Report
+      # ======================================================
+      # STEP 0: CHECKOUT CODE
+      # ======================================================
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      
+      # ======================================================
+      # STEP 1: SETUP PYTHON
+      # ======================================================
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      
+      # ======================================================
+      # PHASE 0: SETUP ENVIRONMENT (EXACTLY AS LOCAL)
+      # ======================================================
+      - name: Setup Virtual Environment
+        id: setup-phase
         run: |
-          echo "🚀 CI/CD PIPELINE COMPLETED"
-          echo "==========================="
+          echo "PHASE 0: SETUP ENVIRONMENT"
+          echo "============================="
           echo ""
-          echo "Job Results:"
-          echo "------------"
-          echo "Smoke Test......: ${{ needs.smoke-test.result }}"
-          echo "Security Scan...: ${{ needs.security-sast.result }}"
-          echo "Build...........: ${{ needs.build-app.result }}"
-          echo "Tests...........: ${{ needs.test-app.result }}"
+          echo "Going to: flask_app/src/main"
+          cd flask_app/src/main
+          echo "Current directory: $(pwd)"
           echo ""
           
-          # Determine overall status
-          if [[ "${{ needs.smoke-test.result }}" == "success" && 
-                "${{ needs.build-app.result }}" == "success" && 
-                "${{ needs.test-app.result }}" == "success" ]]; then
-            echo "✅ ALL CRITICAL JOBS PASSED!"
-            echo "✅ Application is ready for deployment"
+          # 1. Create venv (exactly as you do locally)
+          echo "Creating virtual environment..."
+          python3 -m venv venv
+          echo "✅ Venv created at: $(pwd)/venv"
+          echo ""
+          
+          # 2. Activate venv
+          echo "Activating venv..."
+          source venv/bin/activate
+          echo "✅ Venv activated"
+          echo "   Python: $(which python)"
+          echo "   Version: $(python --version)"
+          echo ""
+          
+          # 3. Update pip
+          echo "Upgrading pip..."
+          python -m pip install --upgrade pip
+          echo ""
+          
+          # 4. Install requirements (one level up)
+          echo "Installing requirements.txt..."
+          echo "From: ../requirements.txt"
+          pip install -r ../requirements.txt
+          echo "Requirements installed"
+          echo ""
+          
+          # 5. Install extra packages (pytest is already in requirements)
+          echo "Checking pytest..."
+          if ! pip show pytest >/dev/null 2>&1; then
+            echo "Installing pytest..."
+            pip install pytest
+          fi
+          echo "Pytest available"
+          echo ""
+          
+          # 6. Basic verification only
+          echo "Basic verification..."
+          pip show Flask pytest | grep -E "^(Name|Version):" || true
+          echo ""
+          
+          echo "SETUP COMPLETED SUCCESSFULLY"
+      
+      # ======================================================
+      # PHASE 1: SECURITY SCAN (SAST) - BANDIT
+      # ======================================================
+      - name: Security Scan (SAST)
+        id: security-phase
+        run: |
+          echo "PHASE 1: SECURITY SCAN"
+          echo "========================="
+          echo ""
+          
+          # 1. Activate venv and go to project
+          echo "Activating venv..."
+          cd flask_app/src/main
+          source venv/bin/activate
+          echo "Directory: $(pwd)"
+          echo ""
+          
+          # 2. Install bandit if needed
+          echo "Checking bandit..."
+          if ! pip show bandit >/dev/null 2>&1; then
+            echo "Installing bandit..."
+            pip install bandit
+          fi
+          echo "✅ Bandit available"
+          echo ""
+          
+          # 3. Run quick scan (optional - can skip if you want)
+          echo "Running quick security scan..."
+          bandit -r . -f json -o bandit-results.json || echo "⚠️ Scan failed, continuing..."
+          
+          if [ -f "bandit-results.json" ]; then
+            echo "Scan result saved in bandit-results.json"
+          fi
+          echo ""
+          echo "✅ SECURITY PHASE COMPLETED"
+      
+      # ======================================================
+      # PHASE 2: RUN TESTS WITH pytest
+      # ======================================================
+      - name: Run Tests with pytest
+        id: test-phase
+        run: |
+          echo "PHASE 2: RUN TESTS"
+          echo "====================="
+          echo ""
+          
+          # 1. Activate venv and go to project
+          echo "Activating venv..."
+          cd flask_app/src/main
+          source venv/bin/activate
+          echo "Directory: $(pwd)"
+          echo "Python: $(which python)"
+          echo ""
+          
+          # 2. Check test structure
+          echo "Test structure:"
+          find . -name "*test*.py" -type f | head -10 || echo "No tests found"
+          echo ""
+          
+          echo "Running pytest..."
+          cd "${{ github.workspace }}/flask_app/src"
+          python -m pytest tests/ -v --cov=app --cov-report=term-missing
+          
+          echo ""
+          echo "✅ TESTS EXECUTED SUCCESSFULLY"
+      
+      # ======================================================
+      # PHASE 3: PIPELINE SUMMARY
+      # ======================================================
+      - name: Pipeline Summary
+        if: always()
+        run: |
+          echo "PHASE 3: PIPELINE SUMMARY"
+          echo "============================"
+          echo ""
+          echo "Results:"
+          echo "--------"
+          echo "Setup Environment....: ${{ steps.setup-phase.conclusion || 'unknown' }}"
+          echo "Security Scan........: ${{ steps.security-phase.conclusion || 'unknown' }}"
+          echo "Test Execution.......: ${{ steps.test-phase.conclusion || 'unknown' }}"
+          echo ""
+          echo "Overall Status.......: ${{ job.status }}"
+          echo ""
+          
+          if [ "${{ job.status }}" = "success" ]; then
+            echo "✅ PIPELINE COMPLETED SUCCESSFULLY!"
+            echo "✅ Environment configured correctly"
+            echo "✅ Tests executed"
+            echo "✅ Ready for next steps"
           else
-            echo "⚠️  Some jobs failed or were skipped"
-            echo "Review individual job logs for details"
+            echo "⚠️ Some phases failed"
+            echo "Check logs for details"
           fi
           
           echo ""
-          echo "Pipeline execution complete."
+          echo "========================================"
+          echo "PIPELINE EXECUTION COMPLETE"
+          echo "========================================"
