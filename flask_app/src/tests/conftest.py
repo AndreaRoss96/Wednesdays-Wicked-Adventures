@@ -27,27 +27,25 @@ def app():
     Simulate application for testing
     """
     # Create a temporary database file
-    db_fd, db_path = tempfile.mkstemp()
-
-    test_config = {
+    test_app = create_app('testing')
+    
+    # Ensure config is applied
+    test_app.config.update({
         'TESTING': True,
         'SQLALCHEMY_DATABASE_URI': 'sqlite:///:memory:',
         'SQLALCHEMY_TRACK_MODIFICATIONS': False,
         'SECRET_KEY': 'test-secret-key',
         'WTF_CSRF_ENABLED': False  # Disable CSRF for testing
-    }
-
-    app = create_app('testing')
-    app.config.update(test_config)
-
-    with app.app_context():
+    })
+    
+    with test_app.app_context():
         db.create_all()
         _create_test_data()
-
-    yield app
-
-    # Cleanup: remove session and database file
-    with app.app_context():
+        
+    yield test_app
+    
+    # Cleanup
+    with test_app.app_context():
         db.session.remove()
         db.drop_all()
 
@@ -174,7 +172,6 @@ def _create_test_data():
         wait_time='15-30 minutes',
         height_requirement='None'
     )
-    db.session.add(park1)
-    db.session.add(park2)
+    db.session.add_all([park1, park2, park3])
     
     db.session.commit()

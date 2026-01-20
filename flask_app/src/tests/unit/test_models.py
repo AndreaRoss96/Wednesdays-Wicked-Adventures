@@ -8,7 +8,7 @@ import os
 # Add the main directory to Python path
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', '..', 'main'))
 
-from app.models import User, Role, Park, Booking
+from app.models import User, Role, Park, Booking, Message
 from werkzeug.security import generate_password_hash, check_password_hash
 from datetime import datetime
 
@@ -36,13 +36,29 @@ class TestUserModel:
         with app.app_context():
             user = User.query.filter_by(email='test@example.com').first()
             assert user.get_id() == str(user.user_id)
+    
+    def test_user_has_role(self, app):
+        """Test User.has_role() method"""
+        with app.app_context():
+            user = User.query.filter_by(email='test@example.com').first()
+            admin = User.query.filter_by(email='admin@example.com').first()
+            
+            assert user.has_role('user') == True
+            assert user.has_role('admin') == False
+            assert admin.has_role('admin') == True
+            assert admin.has_role('user') == False
+        
+    def test_user_str_representation(self, app):
+        """Test User.__str__() method"""
+        with app.app_context():
+            user = User.query.filter_by(email='test@example.com').first()
+            assert str(user) == 'Test User'
 
     def test_user_to_json(self, app):
         """Test User.to_json() method"""
         with app.app_context():
             user = User.query.filter_by(email='test@example.com').first()
             json_data = user.to_json()
-            # JSON should include required fields
             assert 'user_id' in json_data
             assert 'name' in json_data
             assert 'email' in json_data
@@ -51,10 +67,24 @@ class TestUserModel:
     def test_user_password_not_stored_plain(self, app):
         """Test that passwords are hashed"""
         with app.app_context():
-            user = User.query.filter_by(email='test@example.com').first()
-            # Password should be hashed, not plaintext
-            assert user.password != 'password123'
-            assert check_password_hash(user.password, 'password123')
+            from app import db
+            
+            # Create a fresh user for this test
+            customer_role = Role.query.filter_by(name='user').first()
+            test_password = 'freshpass123'
+            fresh_user = User(
+                name='Fresh',
+                last_name='Test',
+                email='fresh@test.com',
+                password=generate_password_hash(test_password, method='pbkdf2:sha256'),
+                role_id=customer_role.role_id
+            )
+            db.session.add(fresh_user)
+            db.session.commit()
+            
+            # Verify password is hashed
+            assert fresh_user.password != test_password
+            assert check_password_hash(fresh_user.password, test_password)
 
     def test_user_unique_email(self, app):
         """Test that email must be unique"""
@@ -118,6 +148,12 @@ class TestRoleModel:
             # Role should be created with correct name and ID
             assert role.name == 'test_role'
             assert role.role_id is not None
+    
+    def test_role_str_representation(self, app):
+        """Test Role.__str__() method"""
+        with app.app_context():
+            role = Role.query.filter_by(name='user').first()
+            assert str(role) == 'user'
 
     def test_role_to_json(self, app):
         """Test Role.to_json() method"""
@@ -159,7 +195,64 @@ class TestParkModel:
             )
             # Park attributes should match
             assert park.name == 'Test Park'
-            assert park.location == 'Test Location'
+            assert park.location == 'Test City'
+            assert park.slug == 'test-park'
+            assert park.difficulty == 'Easy'
+            assert park.min_age == 5
+
+    def test_park_to_json_includes_new_fields(self, app):
+        """Test Park.to_json() includes all new fields"""
+        with app.app_context():
+            park = Park.query.first()
+            json_data = park.to_json()
+            
+            assert 'park_id' in json_data
+            assert 'name' in json_data
+            assert 'location' in json_data
+            assert 'description' in json_data
+            assert 'image_path' in json_data
+            assert 'short_description' in json_data
+            assert 'slug' in json_data
+            assert 'folder' in json_data
+            assert 'hours' in json_data
+            assert 'difficulty' in json_data
+            assert 'min_age' in json_data
+            assert 'price' in json_data
+            assert 'wait_time' in json_data
+            assert 'height_requirement' in json_data
+
+    def test_park_slug_unique(self, app):
+        """Test that park slug must be unique"""
+        with app.app_context():
+            from app import db
+            
+            park1 = Park(
+                name='Park A',
+                location='Location A',
+                description='Description A',
+                short_description='Short A',
+                slug='unique-slug'
+            )
+            db.session.add(park1)
+            db.session.commit()
+            
+            park2 = Park(
+                name='Park B',
+                location='Location B',
+                description='Description B',
+                short_description='Short B',
+                slug='unique-slug'
+            )
+            db.session.add(park2)
+            with pytest.raises(Exception):
+                db.session.commit()
+            db.session.rollback()
+
+    def test_park_str_representation(self, app):
+        """Test Park.__str__() method"""
+        with app.app_context():
+            park = Park.query.first()
+            assert str(park) == park.name
 
     def test_park_to_json(self, app):
         """Test Park.to_json() method"""
@@ -171,6 +264,30 @@ class TestParkModel:
             assert 'name' in json_data
             assert 'location' in json_data
             assert 'description' in json_data
+    
+    def test_park_default_values(self, app):
+        """Test park default values"""
+        with app.app_context():
+            from app import db
+            
+            park = Park(
+                name='Minimal Park',
+                location='Somewhere',
+                description='Basic',
+                short_description='Short',
+                slug='minimal-park'
+            )
+            db.session.add(park)
+            db.session.commit()
+            
+            assert park.image_path == 'images/parks/default.jpg'
+            assert park.folder == ''
+            assert park.hours == '9:00 AM - 10:00 PM'
+            assert park.difficulty == 'Moderate'
+            assert park.min_age == 12
+            assert park.price == 'Starting at $49.99'
+            assert park.wait_time == '30-60 minutes'
+            assert park.height_requirement == '48" (1.2m)'
 
     def test_park_booking_relationship(self, app):
         """Test Park-Booking relationship"""
@@ -276,3 +393,44 @@ class TestBookingModel:
                 db.session.add(booking)
                 db.session.commit()
             db.session.rollback()
+
+class TestMessageModel:
+    """Test Message model"""
+    
+    def test_message_creation(self, app):
+        """Test creating a message"""
+        with app.app_context():
+            from app import db
+            
+            message = Message(
+                name='John Doe',
+                email='john@example.com',
+                message='This is a test message'
+            )
+            db.session.add(message)
+            db.session.commit()
+            
+            assert message.name == 'John Doe'
+            assert message.email == 'john@example.com'
+            assert message.message == 'This is a test message'
+            assert message.created_at is not None
+    
+    def test_message_to_json(self, app):
+        """Test Message.to_json() method"""
+        with app.app_context():
+            from app import db
+            
+            message = Message(
+                name='Test User',
+                email='test@example.com',
+                message='Test message content'
+            )
+            db.session.add(message)
+            db.session.commit()
+            
+            json_data = message.to_json()
+            assert 'message_id' in json_data
+            assert 'name' in json_data
+            assert 'email' in json_data
+            assert 'message' in json_data
+            assert 'created_at' in json_data
