@@ -55,9 +55,9 @@ def health_safety_guidelines():
     current_date = datetime.now()
     return render_template('health_safety_guidelines.html', now=current_date)
 
-@main.route('/contact', methods=['POST'])
+@main.route('/contact', methods=['GET','POST'])
 def contact():
-    """Processa o formulário de contato"""
+   
     try:
         referrer = request.referrer or url_for('main.index')
         
