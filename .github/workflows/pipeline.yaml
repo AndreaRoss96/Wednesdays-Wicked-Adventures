@@ -188,6 +188,7 @@ jobs:
           pyb
           echo ""
           echo "Build artifacts created in dist/"
+          cd flask_app/src/target/dist
           echo "Current working directory: $(pwd)"
           ls -l
           echo ""     
