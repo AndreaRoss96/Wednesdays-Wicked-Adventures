@@ -196,7 +196,7 @@ jobs:
           ls -l 
           echo "ls -l dist"
           ls -l dist
-          # unzip -l dist/wednesdays-wicked-adventures-1.0.dev0-py3-none-any.whl | grep /
+          unzip -l dist/wednesdays_wicked_adventures-1.0.dev0-py3-none-any.whl | grep / # wednesdays_wicked_adventures-1.0.dev0-py3-none-any.whl
           echo "" 
       
       # ======================================================
