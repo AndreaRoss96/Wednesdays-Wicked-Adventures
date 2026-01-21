@@ -181,6 +181,18 @@ document.addEventListener('DOMContentLoaded', function() {
         `;
     }
 
+        document.addEventListener('DOMContentLoaded', function() {
+        // Se a URL tem âncora #contact, rola até ela
+        if (window.location.hash === '#contact') {
+            setTimeout(() => {
+                const contactSection = document.getElementById('contact');
+                if (contactSection) {
+                    contactSection.scrollIntoView({ behavior: 'smooth' });
+                }
+            }, 100);
+        }
+    });
+
     // ============================================
     // LOGIN FORM - Frontend Validation
     // ============================================
