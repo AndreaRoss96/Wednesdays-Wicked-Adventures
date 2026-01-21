@@ -15,6 +15,10 @@ def login_post():
     email = request.form.get('email')
     password = request.form.get('password')
 
+    if not email or not password:
+        flash('Email and password are required.')
+        return redirect(url_for('login.login'))
+
     user = User.query.filter_by(email=email).first()
 
     if not user or not check_password_hash(user.password, password):
@@ -53,6 +57,10 @@ def register_post():
     name = request.form.get('name')
     last_name = request.form.get('last_name')
     password = request.form.get('password')
+
+    if not email or not name or not last_name or not password:
+        flash('All fields are required!')
+        return redirect(url_for('login.register'))
 
     user = User.query.filter_by(email=email).first() 
     if user: 
