@@ -115,3 +115,18 @@ Booking Form Validation
         dateInput.value = today;
         }
     });
+
+/* ============================
+Checkbox Handling 
+=============================*/
+
+document.addEventListener('DOMContentLoaded', function() {
+    const checkbox = document.getElementById('health_safety');
+    const link = document.getElementById('health-link');
+
+    if (!checkbox || !link) return;
+
+    link.addEventListener('click', () => {
+        checkbox.disabled = false;
+    });
+});
