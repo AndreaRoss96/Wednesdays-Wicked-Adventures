@@ -15,6 +15,10 @@ def login_post():
     email = request.form.get('email')
     password = request.form.get('password')
 
+    if not email or not password:
+        flash('Email and password are required.')
+        return redirect(url_for('login.login'))
+
     user = User.query.filter_by(email=email).first()
 
     if not user or not check_password_hash(user.password, password):
