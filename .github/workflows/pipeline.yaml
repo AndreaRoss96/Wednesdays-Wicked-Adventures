@@ -162,6 +162,7 @@ jobs:
         run: |
           echo "PHASE 3: BUILD STAGE"
           echo "====================="
+          echo ""
 
           # 1. Activate venv
           cd flask_app/src/main
@@ -170,7 +171,7 @@ jobs:
 
           # 2. Install build & lint tools
           echo "Installing build tools..."
-          python pip install build flake8
+          python -m pip install build flake8
 
           # 3. Run flake8 
           echo "Running flake8..."
