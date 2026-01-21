@@ -5,7 +5,8 @@ name: CI/CD Pipeline
 
 on:
   push:
-    branches: [UAT, feature/*]
+    #branches: [UAT, feature/*]
+    branches: [feature/*]
   pull_request:
     branches: [main]
   workflow_dispatch:
@@ -32,7 +33,7 @@ jobs:
           python-version: "3.11"
       
       # ======================================================
-      # PHASE 0: SETUP ENVIRONMENT (EXACTLY AS LOCAL)
+      # PHASE 0: SETUP ENVIRONMENT (AS PER LOCAL)
       # ======================================================
       - name: Setup Virtual Environment
         id: setup-phase
@@ -48,15 +49,15 @@ jobs:
           # 1. Create venv (exactly as you do locally)
           echo "Creating virtual environment..."
           python3 -m venv venv
-          echo "✅ Venv created at: $(pwd)/venv"
+          echo "Venv created at: $(pwd)/venv"
           echo ""
           
           # 2. Activate venv
           echo "Activating venv..."
           source venv/bin/activate
-          echo "✅ Venv activated"
-          echo "   Python: $(which python)"
-          echo "   Version: $(python --version)"
+          echo "Venv activated"
+          echo "Python: $(which python)"
+          echo "Version: $(python --version)"
           echo ""
           
           # 3. Update pip
@@ -110,21 +111,21 @@ jobs:
             echo "Installing bandit..."
             pip install bandit
           fi
-          echo "✅ Bandit available"
+          echo "Bandit available"
           echo ""
           
           # 3. Run quick scan (optional - can skip if you want)
           echo "Running quick security scan..."
-          bandit -r . -f json -o bandit-results.json || echo "⚠️ Scan failed, continuing..."
+          bandit -r . -f json -o bandit-results.json || echo "Scan failed, continuing..."
           
           if [ -f "bandit-results.json" ]; then
             echo "Scan result saved in bandit-results.json"
           fi
           echo ""
-          echo "✅ SECURITY PHASE COMPLETED"
+          echo "SECURITY PHASE COMPLETED"
       
       # ======================================================
-      # PHASE 2: RUN TESTS WITH pytest
+      # PHASE 2: RUN TESTS WITH PYTEST
       # ======================================================
       - name: Run Tests with pytest
         id: test-phase
@@ -151,10 +152,39 @@ jobs:
           python -m pytest tests/ -v --cov=app --cov-report=term-missing
           
           echo ""
-          echo "✅ TESTS EXECUTED SUCCESSFULLY"
+          echo "TESTS EXECUTED SUCCESSFULLY"
+
+      # ======================================================
+      # PHASE 3: BUILD PHASE WITH PYBUILDER
+      # ======================================================
+      - name: Build Flask App (Package + Lint)
+        id: build-phase
+        run: |
+          echo "PHASE 3: BUILD STAGE"
+          echo "====================="
+
+          # 1. Activate venv
+          cd flask_app/src/main
+          source venv/bin/activate
+          echo "Using Python: $(which python)"
+
+          # 2. Install build & lint tools
+          echo "Installing build tools..."
+          python pip install build flake8
+
+          # 3. Run flake8 
+          echo "Running flake8..."
+          cd ../
+          flake8 app --statistics --count || true
+
+          # 4. Build Python package
+          echo "Building Python package..."
+          python build
+
+          echo "Build artifacts created in dist/"
       
       # ======================================================
-      # PHASE 3: PIPELINE SUMMARY
+      # PHASE 4: PIPELINE SUMMARY
       # ======================================================
       - name: Pipeline Summary
         if: always()
@@ -172,12 +202,12 @@ jobs:
           echo ""
           
           if [ "${{ job.status }}" = "success" ]; then
-            echo "✅ PIPELINE COMPLETED SUCCESSFULLY!"
-            echo "✅ Environment configured correctly"
-            echo "✅ Tests executed"
-            echo "✅ Ready for next steps"
+            echo "PIPELINE COMPLETED SUCCESSFULLY!"
+            echo "Environment configured correctly"
+            echo "Tests executed"
+            echo "Ready for next steps"
           else
-            echo "⚠️ Some phases failed"
+            echo "Some phases failed"
             echo "Check logs for details"
           fi
           
