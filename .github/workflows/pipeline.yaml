@@ -22,6 +22,8 @@ jobs:
       # ======================================================
       - name: Checkout repository
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # Shallow clones disabled for SonarCloud
       
       # ======================================================
       # STEP 1: SETUP PYTHON
@@ -152,14 +154,28 @@ jobs:
           
           echo ""
           echo "✅ TESTS EXECUTED SUCCESSFULLY"
+
+      # ======================================================
+      # PHASE 3: SONARCLOUD ANALYSIS
+      # ======================================================
+      - name: SonarCloud Scan
+        id: sonar-phase
+        uses: SonarSource/sonarcloud-github-action@master
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+        with:
+          projectBaseDir: flask_app/src
+          args: >
+            -Dsonar.verbose=true
       
       # ======================================================
-      # PHASE 3: PIPELINE SUMMARY
+      # PHASE 4: PIPELINE SUMMARY
       # ======================================================
       - name: Pipeline Summary
         if: always()
         run: |
-          echo "PHASE 3: PIPELINE SUMMARY"
+          echo "PHASE 4: PIPELINE SUMMARY"
           echo "============================"
           echo ""
           echo "Results:"
