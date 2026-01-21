@@ -187,13 +187,14 @@ jobs:
           echo "Building Python package..."
           pyb
           echo ""
-          cd target
+          cd target/dist
           echo "Build artifacts created in dist/"
           echo "Current working directory: $(pwd)"
           ls -l
+          cd wednesdays-wicked-adventures-1.0.dev0
           echo ""
-          ls -l dist
-          unzip -l dist/wednesdays-wicked-adventures-1.0.dev0-py3-none-any.whl | grep /
+          ls -l 
+          # unzip -l dist/wednesdays-wicked-adventures-1.0.dev0-py3-none-any.whl | grep /
           echo "" 
       
       # ======================================================
