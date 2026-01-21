@@ -191,7 +191,13 @@ jobs:
           cd target/dist
           echo "Current working directory: $(pwd)"
           ls -l
-          echo ""     
+          echo "" 
+          whl_dir=$(ls -d */)        # "wednesdays-wicked-adventures-1.0.dev0/"
+          whl_file=$(ls "$whl_dir"*.whl)  # wheel file
+          echo "wheel: $whl_file" 
+          echo "" 
+          unzip -l "$whl_file" | grep /
+          echo ""   
       
       # ======================================================
       # PHASE 4: PIPELINE SUMMARY
