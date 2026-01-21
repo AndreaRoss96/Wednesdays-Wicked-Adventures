@@ -168,6 +168,7 @@ jobs:
           cd flask_app/src/main
           source venv/bin/activate
           echo "Using Python: $(which python)"
+          echo ""
 
           # 2. Install build & lint tools
           echo "Installing build tools..."
@@ -176,7 +177,7 @@ jobs:
           # 3. Run flake8 
           echo "Running flake8..."
           cd ../
-          flake8 app --statistics --count || true
+          flake8 main/app --statistics --count || true
 
           # 4. Build Python package
           echo "Building Python package..."
