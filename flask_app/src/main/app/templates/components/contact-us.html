@@ -13,7 +13,7 @@
       </p>
     </div>
 
-    <form method="POST" action="{{ url_for('main.contact') }}" class="contact-form" id="contactForm">
+    <form method="POST" action="{{ url_for('main.contact_submit') }}" class="contact-form" id="contactForm">
       <input type="text" name="name" class="contact-input" placeholder="Your Name" required>
       <input type="email" name="email" class="contact-input" placeholder="Your Email" required>
       <textarea name="message" class="contact-textarea" placeholder="Your Message" rows="3" required></textarea>
