@@ -55,34 +55,35 @@ def health_safety_guidelines():
     current_date = datetime.now()
     return render_template('health_safety_guidelines.html', now=current_date)
 
-@main.route('/contact', methods=['GET','POST'])
+
+@main.route('/contact', methods=['GET', 'POST'])
 def contact():
-   
+
+    if request.method == 'GET':
+        parks = Park.query.all()
+        return render_template('index.html', parks=parks)
+
     try:
         referrer = request.referrer or url_for('main.index')
-        
+
         if '#contact' in referrer:
             referrer = referrer.split('#')[0]
-        
-        if not all([request.form.get('name'), 
-                    request.form.get('email'), 
-                    request.form.get('message')]):
-            flash('Please fill in all fields.', 'error')
-            return redirect(referrer + '#contact')
-        
+
         message = Message(
             name=request.form['name'],
             email=request.form['email'],
             message=request.form['message']
         )
-        
+
         db.session.add(message)
         db.session.commit()
-        
+
         flash('Thank you for your message! We will get back to you soon.', 'success')
-        
+
     except Exception as e:
         print(f"Error sending message: {e}")
         flash('Sorry, there was an error sending your message. Please try again.', 'error')
-    
+
     return redirect(referrer + '#contact')
+  
+       
