@@ -55,15 +55,18 @@ def health_safety_guidelines():
     current_date = datetime.now()
     return render_template('health_safety_guidelines.html', now=current_date)
 
+@main.route('/contact', methods=['GET'])
+def contact_page():
+    return redirect(url_for('main.index', _anchor='contact'))
+
 @main.route('/contact', methods=['POST'])
-def contact():
-    """Processa o formulário de contato"""
+def contact_submit():
+    referrer = request.referrer or url_for('main.index')
+    
+    if '#contact' in referrer:
+        referrer = referrer.split('#')[0]
+    
     try:
-        referrer = request.referrer or url_for('main.index')
-        
-        if '#contact' in referrer:
-            referrer = referrer.split('#')[0]
-        
         if not all([request.form.get('name'), 
                     request.form.get('email'), 
                     request.form.get('message')]):
