@@ -155,49 +155,59 @@ jobs:
           echo "TESTS EXECUTED SUCCESSFULLY"
 
       # ======================================================
-      # PHASE 3: BUILD PHASE WITH PYBUILDER
+      # PHASE 3: BUILD DOCKER IMAGE
       # ======================================================
-      - name: Build Flask App (Package + Lint)
+      - name: Build Docker Image
         id: build-phase
         run: |
-          echo "PHASE 3: BUILD STAGE"
-          echo "====================="
+          echo "PHASE 3: BUILD DOCKER IMAGE"
+          echo "============================"
           echo ""
 
-          # 1. Activate venv
-          cd flask_app/src/main
-          source venv/bin/activate
-          echo "Using Python: $(which python)"
+          # go to the directory with Dockerfile
+          cd flask_app/src
+          echo "Current directory: $(pwd)"
           echo ""
 
-          # 2. Install build & lint tools
-          echo "Installing build tools..."
-          python -m pip install --upgrade pip
-          python -m pip install pybuilder
-          python -m pip install flake8
+          # verify required files exist
+          echo "Verifying build files..."
+          if [ ! -f "Dockerfile" ]; then
+            echo "ERROR: Dockerfile not found!"
+            exit 1
+          fi
+          if [ ! -f "setup.py" ]; then
+            echo "ERROR: setup.py not found!"
+            exit 1
+          fi
+          if [ ! -f "MANIFEST.in" ]; then
+            echo "ERROR: MANIFEST.in not found!"
+            exit 1
+          fi
+          echo "All required files are present!"
           echo ""
 
-          # 3. Run flake8 
-          echo "Running flake8..."
-          cd ../
-          flake8 main/app --statistics --count || true
+          # build Docker Image
+          echo "Building Docker image..."
+          docker build -t wicked-adventures:latest .
+          echo "Docker image built successfully"
           echo ""
 
-          # 4. Build Python package
-          echo "Building Python package..."
-          pyb
+          # verify the image was created
+          echo "Verifying Docker image..."
+          docker images | grep wicked-adventures
           echo ""
-          cd target/dist
-          echo "Build artifacts created in dist/"
-          echo "Current working directory: $(pwd)"
-          ls -l
-          cd wednesdays-wicked-adventures-1.0.dev0
-          echo "Current dir: wednesdays-wicked-adventures-1.0.dev0"
-          ls -l 
-          echo "ls -l dist"
-          ls -l dist
-          unzip -l dist/wednesdays_wicked_adventures-1.0.dev0-py3-none-any.whl | grep / # wednesdays_wicked_adventures-1.0.dev0-py3-none-any.whl
-          echo "" 
+
+          # get image details
+          echo "Image details:"
+          docker images wicked-adventures:latest --format "table {{.Repository}}\t{{.Tag}}\t{{.Size}}\t{{.CreatedAt}}"
+          echo ""
+
+          # test the image 
+          echo "Testing..."
+          docker run --rm wicked-adventures:latest python -c "import app; print('App imports successfully')"
+          echo ""
+
+          echo "DOCKER BUILD COMPLETED SUCCESSFULLY"
       
       # ======================================================
       # PHASE 4: PIPELINE SUMMARY
@@ -221,7 +231,7 @@ jobs:
             echo "PIPELINE COMPLETED SUCCESSFULLY!"
             echo "Environment configured correctly"
             echo "Tests executed"
-            echo "Build completed"
+            echo "Docker Build completed"
             echo "Ready for next steps"
           else
             echo "Some phases failed"
