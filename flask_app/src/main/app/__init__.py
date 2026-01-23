@@ -2,6 +2,8 @@ from flask import Flask, render_template
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager
 from flask_admin import Admin
+from flask_wtf.csrf import CSRFProtect
+import os
 from config import config
 
 ## to enforce FK in SQLite3
@@ -10,6 +12,7 @@ from sqlalchemy.engine import Engine
 import sqlite3
 
 db = SQLAlchemy()
+csrf = CSRFProtect()
 
  ## Enforce FK in SQLite3 ##
 @event.listens_for(Engine, "connect")
@@ -24,6 +27,7 @@ def create_app(config_name="development"):
     app = Flask(__name__)
     app.config.from_object(config[config_name])
     db.init_app(app)
+    csrf.init_app(app)
     config[config_name].init_app(app)
 
     from .models import User, Role, Booking, Park, Message, AppIndexView, UserView, RoleView, BookingView, ParkView, MessageView
