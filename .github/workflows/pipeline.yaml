@@ -15,7 +15,14 @@ jobs:
   ci-pipeline:
     name: CI/CD Pipeline
     runs-on: ubuntu-latest
-    timeout-minutes: 15 
+    timeout-minutes: 15
+
+    env:
+      FLASK_ENV: development
+      SECRET_KEY: ci-pipeline-key-${{ github.run_id }}-${{ github.run_attempt }}
+      DEV_DATABASE_URL: sqlite:///test.db
+      TEST_DATABASE_URL: sqlite:///:memory:
+      PROD_DATABASE_URL: sqlite:///test.db  
     
     steps:
       # ======================================================
@@ -86,6 +93,21 @@ jobs:
           pip show Flask pytest | grep -E "^(Name|Version):" || true
           echo ""
           
+          # 7. Verificar configuração CSRF
+          echo "Verifying CSRF configuration..."
+          python3 -c "
+          import os
+          print(f'FLASK_ENV: {os.environ.get(\"FLASK_ENV\")}')
+          print(f'SECRET_KEY exists: {\"SECRET_KEY\" in os.environ}')
+          from config import config
+          cfg = config[os.environ.get(\"FLASK_ENV\", \"development\")]()
+          print(f'Config class: {cfg.__class__.__name__}')
+          print(f'WTF_CSRF_ENABLED: {cfg.WTF_CSRF_ENABLED}')
+          print(f'SECRET_KEY length: {len(cfg.SECRET_KEY) if cfg.SECRET_KEY else 0}')
+          print('✅ CSRF should be ENABLED for SonarQube')
+          "
+          echo ""
+          
           echo "SETUP COMPLETED SUCCESSFULLY"
       
       # ======================================================
@@ -114,7 +136,7 @@ jobs:
           echo "Bandit available"
           echo ""
           
-          # 3. Run quick scan (optional - can skip if you want)
+          # 3. Run quick scan 
           echo "Running quick security scan..."
           bandit -r . -f json -o bandit-results.json || echo "Scan failed, continuing..."
           
@@ -154,58 +176,17 @@ jobs:
           echo ""
           echo "TESTS EXECUTED SUCCESSFULLY"
 
+
       # ======================================================
-      # PHASE 3: BUILD DOCKER IMAGE
+      # PHASE 3: BUILD DOCKER IMAGE DEV
       # ======================================================
+
       - name: Build Docker Image
-        id: build-phase
         run: |
-          echo "PHASE 3: BUILD DOCKER IMAGE"
-          echo "============================"
-          echo ""
-
-          # go to the directory with Dockerfile
           cd flask_app/src
-          echo "Current directory: $(pwd)"
-          echo ""
-
-          # verify required files exist
-          echo "Verifying build files..."
-          if [ ! -f "Dockerfile" ]; then
-            echo "ERROR: Dockerfile not found!"
-            exit 1
-          fi
-          if [ ! -f "setup.py" ]; then
-            echo "ERROR: setup.py not found!"
-            exit 1
-          fi
-          if [ ! -f "MANIFEST.in" ]; then
-            echo "ERROR: MANIFEST.in not found!"
-            exit 1
-          fi
-          echo "All required files are present!"
-          echo ""
-
-          # build Docker Image
-          echo "Building Docker image..."
-          docker build -t wicked-adventures:latest .
-          echo "Docker image built successfully"
-          echo ""
-
-          # verify the image was created
-          echo "Verifying Docker image..."
-          docker images | grep wicked-adventures
-          echo ""
-
-          # get image details
-          echo "Image details:"
-          docker images wicked-adventures:latest --format "table {{.Repository}}\t{{.Tag}}\t{{.Size}}\t{{.CreatedAt}}"
-          echo ""
-
-          # test the image 
-          echo "Testing..."
-          docker run --rm wicked-adventures:latest python -c "import app; print('App imports successfully')"
-          echo ""
+          docker build -f Dockerfile.dev -t wicked-adventures:ci .
+          # test in development
+          docker run --rm wicked-adventures:ci python -c "import sys; sys.path.insert(0, '/app/main'); import app; print('Docker CI image works')"
 
           echo "DOCKER BUILD COMPLETED SUCCESSFULLY"
       

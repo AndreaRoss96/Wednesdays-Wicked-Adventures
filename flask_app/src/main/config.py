@@ -14,7 +14,7 @@ class Config:
 class DevelopmentConfig(Config):
     DEBUG = True
     SQLALCHEMY_DATABASE_URI = os.getenv("DEV_DATABASE_URL", "sqlite:///flask_app.db")
-    SECRET_KEY = 'dev-secret-key'
+    SECRET_KEY = os.environ.get('SECRET_KEY') or 'dev-fallback-key'
 
     @staticmethod
     def init_app(app):
@@ -33,15 +33,18 @@ class TestingConfig(Config):
     TESTING = True
     SQLALCHEMY_DATABASE_URI = os.getenv("TEST_DATABASE_URL", "sqlite:///:memory:")
     WTF_CSRF_ENABLED = False
-    SECRET_KEY = 'test-secret-key'
+    SECRET_KEY = os.environ.get('SECRET_KEY') or 'dev-fallback-key'
 
 class ProductionConfig(Config):
     DEBUG = False
     SQLALCHEMY_DATABASE_URI = os.getenv("PROD_DATABASE_URL")
     WTF_CSRF_ENABLED = True   
-    SECRET_KEY = os.environ.get('SECRET_KEY')
-    if not SECRET_KEY:
-        raise RuntimeError("CRITICAL: SECRET_KEY environment variable must be set in production!")
+
+    def __init__(self):
+        super().__init__()
+        self.SECRET_KEY = os.environ.get('SECRET_KEY')
+        if not self.SECRET_KEY:
+            raise RuntimeError("CRITICAL: SECRET_KEY environment variable must be set in production!")
     
 config = {
     "development": DevelopmentConfig,

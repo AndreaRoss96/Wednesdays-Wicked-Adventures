@@ -6,6 +6,7 @@ flask-login==0.6.3
 Flask-Admin==1.6.1
 WTForms==3.1.2
 Flask-WTF==1.2.2
+python-dotenv
 
 pytest==7.4.3
 pytest-cov==4.1.0
