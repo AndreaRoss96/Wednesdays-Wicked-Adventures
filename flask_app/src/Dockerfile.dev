@@ -1,38 +1,37 @@
-# Dockerfile.dev
+# Dockerfile.dev 
 FROM python:3.9-slim
 
 WORKDIR /app
 
 # Install system dependencies
-RUN apt-get update && apt-get install -y \
-    gcc \
-    && rm -rf /var/lib/apt/lists/*
+RUN apt-get update && apt-get install -y gcc && rm -rf /var/lib/apt/lists/*
 
-# Copy requirements and install dependencies
+# Copy requirements (cache)
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt python-dotenv
 
-# Copy source
-COPY . .
+# Copy code
+COPY main/ ./main/
+COPY setup.py .
+COPY MANIFEST.in .
 
-# Add /app/main to 
+# Environment
 ENV PYTHONPATH=/app/main:$PYTHONPATH
-
-# Development environment variables for CI/CD and local development
+# nosonar: ignore - This is development/CI Dockerfile
 ENV FLASK_ENV=development
 ENV FLASK_APP=app
+# nosonar: ignore - This is development/CI Dockerfile
 ENV FLASK_DEBUG=1
 ENV FLASK_RUN_HOST=0.0.0.0
 ENV PYTHONUNBUFFERED=1
 
-# SECRET_KEY with fallback for CI
-ENV SECRET_KEY=dev-default-for-ci-and-local
+ARG SECRET_KEY=ci-default-key
+ENV SECRET_KEY=${SECRET_KEY}
 
 EXPOSE 5000
 
-# Add a non-root user and switch to it
+# Non-root user 
 RUN useradd -m -u 1000 appuser && chown -R appuser:appuser /app
 USER appuser
 
-# Development: flask run with hot reload
 CMD ["flask", "run", "--host=0.0.0.0", "--reload"]

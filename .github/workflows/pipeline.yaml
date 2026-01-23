@@ -21,7 +21,7 @@ jobs:
       FLASK_ENV: development
       SECRET_KEY: ci-pipeline-key-${{ github.run_id }}-${{ github.run_attempt }}
       DEV_DATABASE_URL: sqlite:///test.db
-      TEST_DATABASE_URL: sqlite:///:memory:
+      TEST_DATABASE_URL: "sqlite:///:memory:"
       PROD_DATABASE_URL: sqlite:///test.db  
     
     steps:
