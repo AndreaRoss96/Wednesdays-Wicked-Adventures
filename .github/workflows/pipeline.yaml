@@ -15,17 +15,20 @@ jobs:
   ci-pipeline:
     name: CI/CD Pipeline
     runs-on: ubuntu-latest
-    timeout-minutes: 15 
+    timeout-minutes: 15
+    env:
+      SECRET_KEY: ${{ secrets.SECRET_KEY }}
+      FLASK_ENV: testing 
     
     steps:
       # ======================================================
-      # STEP 0: CHECKOUT CODE
+      # STEP 1: CHECKOUT CODE
       # ======================================================
       - name: Checkout repository
         uses: actions/checkout@v4
       
       # ======================================================
-      # STEP 1: SETUP PYTHON
+      # STEP 2: SETUP PYTHON
       # ======================================================
       - name: Setup Python
         uses: actions/setup-python@v5
@@ -33,13 +36,16 @@ jobs:
           python-version: "3.11"
       
       # ======================================================
-      # PHASE 0: SETUP ENVIRONMENT (AS PER LOCAL)
+      # PHASE 3: SETUP ENVIRONMENT (AS PER LOCAL)
       # ======================================================
       - name: Setup Virtual Environment
         id: setup-phase
         run: |
-          echo "PHASE 0: SETUP ENVIRONMENT"
+          echo "PHASE 3: SETUP ENVIRONMENT"
           echo "============================="
+          echo ""
+          echo "Checking environment variables..."
+          echo "SECRET_KEY is set: ${{ env.SECRET_KEY != '' }}"
           echo ""
           echo "Going to: flask_app/src/main"
           cd flask_app/src/main
@@ -89,12 +95,12 @@ jobs:
           echo "SETUP COMPLETED SUCCESSFULLY"
       
       # ======================================================
-      # PHASE 1: SECURITY SCAN (SAST) - BANDIT
+      # PHASE 4: SECURITY SCAN (SAST) - BANDIT
       # ======================================================
       - name: Security Scan (SAST)
         id: security-phase
         run: |
-          echo "PHASE 1: SECURITY SCAN"
+          echo "PHASE 4: SECURITY SCAN"
           echo "========================="
           echo ""
           
@@ -125,12 +131,12 @@ jobs:
           echo "SECURITY PHASE COMPLETED"
       
       # ======================================================
-      # PHASE 2: RUN TESTS WITH PYTEST
+      # PHASE 5: RUN TESTS WITH PYTEST
       # ======================================================
       - name: Run Tests with pytest
         id: test-phase
         run: |
-          echo "PHASE 2: RUN TESTS"
+          echo "PHASE 5: RUN TESTS"
           echo "====================="
           echo ""
           
@@ -155,12 +161,12 @@ jobs:
           echo "TESTS EXECUTED SUCCESSFULLY"
 
       # ======================================================
-      # PHASE 3: BUILD PHASE WITH PYBUILDER
+      # PHASE 6: BUILD PHASE WITH PYBUILDER
       # ======================================================
       - name: Build Flask App (Package + Lint)
         id: build-phase
         run: |
-          echo "PHASE 3: BUILD STAGE"
+          echo "PHASE 6: BUILD STAGE"
           echo "====================="
           echo ""
 
@@ -200,12 +206,12 @@ jobs:
           echo "" 
       
       # ======================================================
-      # PHASE 4: PIPELINE SUMMARY
+      # PHASE 7: PIPELINE SUMMARY
       # ======================================================
       - name: Pipeline Summary
         if: always()
         run: |
-          echo "PHASE 3: PIPELINE SUMMARY"
+          echo "PHASE 7: PIPELINE SUMMARY"
           echo "============================"
           echo ""
           echo "Results:"
