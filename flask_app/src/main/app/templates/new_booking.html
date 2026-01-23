@@ -17,6 +17,7 @@
 
             <!-- Booking Form -->
             <form method="POST" action="{{ url_for('main.booking') }}" class="auth-form">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                 <!-- Park Selection -->
                 <div class="auth-form-group">
                     <label class="auth-form-label">Park</label>
