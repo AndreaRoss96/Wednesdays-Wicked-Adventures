@@ -7,7 +7,7 @@
     <span class="brand-text">Wednesday's Wicked Adventures</span>
   </a>
 
-    <!-- home link -->
+  <!-- Home link -->
   <div class="navbar-home-link">
     <a href="{{ url_for('main.index') }}">Home</a>
   </div>
@@ -15,16 +15,21 @@
   <!-- Dynamic Menu -->
   <div class="navbar-end">
     {% if current_user.is_authenticated %}
-      <!-- User logged in-->
       <span class="welcome-text">Welcome, {{ current_user.name }}!</span>
-      <a href="{{ url_for('main.profile') }}" class="account-link">Profile</a>
+      
+      {% if current_user.has_role('admin') %}
+        <a href="{{ url_for('admin.index') }}" class="account-link" target="_blank">Painel Admin</a>
+      {% else %}
+        <a href="{{ url_for('main.profile') }}" class="account-link">Profile</a>
+      {% endif %}
+      
       <span class="separator">|</span>
       <a href="{{ url_for('login.logout') }}" class="account-link">Logout</a>
       <img src="{{ url_for('static', filename='images/Login_icon.svg') }}"
            alt="User Icon"
            class="Login_icon">
+
     {% else %}
-      <!-- User Not logged in -->
       <a href="{{ url_for('login.register') }}" class="account-link">Register</a>
       <span class="separator">|</span>
       <a href="{{ url_for('login.login') }}" class="account-link">Login</a>
@@ -32,6 +37,5 @@
            alt="Login Icon"
            class="Login_icon">
     {% endif %}
-
   </div>
 </nav>

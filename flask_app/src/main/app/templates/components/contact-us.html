@@ -13,15 +13,8 @@
       </p>
     </div>
 
-    <!-- Route validation -->
-    {% if 'main.contact' in url_for.__globals__ %}
-      <!-- If the route exists -->
-      <form method="POST" action="{{ url_for('main.contact') }}" class="contact-form" id="contactForm">
-    {% else %}
-      <!-- Fallback: form without action (will be handled by JavaScript) -->
-      <form method="POST" action="#" class="contact-form" id="contactForm" onsubmit="handleContactSubmit(event)">
-    {% endif %}
-    
+    <form method="POST" action="{{ url_for('main.contact_submit') }}" class="contact-form" id="contactForm">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
       <input type="text" name="name" class="contact-input" placeholder="Your Name" required>
       <input type="email" name="email" class="contact-input" placeholder="Your Email" required>
       <textarea name="message" class="contact-textarea" placeholder="Your Message" rows="3" required></textarea>

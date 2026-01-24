@@ -5,7 +5,8 @@ name: CI/CD Pipeline
 
 on:
   push:
-    branches: [UAT, feature/*]
+    #branches: [UAT, feature/*]
+    branches: [feature/*]
   pull_request:
     branches: [main]
   workflow_dispatch:
@@ -14,11 +15,14 @@ jobs:
   ci-pipeline:
     name: CI/CD Pipeline
     runs-on: ubuntu-latest
-    timeout-minutes: 15 
+    timeout-minutes: 15
+    env:
+      SECRET_KEY: ${{ secrets.SECRET_KEY }}
+      FLASK_ENV: testing 
     
     steps:
       # ======================================================
-      # STEP 0: CHECKOUT CODE
+      # STEP 1: CHECKOUT CODE
       # ======================================================
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -26,7 +30,7 @@ jobs:
           fetch-depth: 0  # Shallow clones disabled for SonarCloud
       
       # ======================================================
-      # STEP 1: SETUP PYTHON
+      # STEP 2: SETUP PYTHON
       # ======================================================
       - name: Setup Python
         uses: actions/setup-python@v5
@@ -34,13 +38,16 @@ jobs:
           python-version: "3.11"
       
       # ======================================================
-      # PHASE 0: SETUP ENVIRONMENT (EXACTLY AS LOCAL)
+      # PHASE 3: SETUP ENVIRONMENT (AS PER LOCAL)
       # ======================================================
       - name: Setup Virtual Environment
         id: setup-phase
         run: |
-          echo "PHASE 0: SETUP ENVIRONMENT"
+          echo "PHASE 3: SETUP ENVIRONMENT"
           echo "============================="
+          echo ""
+          echo "Checking environment variables..."
+          echo "SECRET_KEY is set: ${{ env.SECRET_KEY != '' }}"
           echo ""
           echo "Going to: flask_app/src/main"
           cd flask_app/src/main
@@ -50,15 +57,15 @@ jobs:
           # 1. Create venv (exactly as you do locally)
           echo "Creating virtual environment..."
           python3 -m venv venv
-          echo "✅ Venv created at: $(pwd)/venv"
+          echo "Venv created at: $(pwd)/venv"
           echo ""
           
           # 2. Activate venv
           echo "Activating venv..."
           source venv/bin/activate
-          echo "✅ Venv activated"
-          echo "   Python: $(which python)"
-          echo "   Version: $(python --version)"
+          echo "Venv activated"
+          echo "Python: $(which python)"
+          echo "Version: $(python --version)"
           echo ""
           
           # 3. Update pip
@@ -90,12 +97,12 @@ jobs:
           echo "SETUP COMPLETED SUCCESSFULLY"
       
       # ======================================================
-      # PHASE 1: SECURITY SCAN (SAST) - BANDIT
+      # PHASE 4: SECURITY SCAN (SAST) - BANDIT
       # ======================================================
       - name: Security Scan (SAST)
         id: security-phase
         run: |
-          echo "PHASE 1: SECURITY SCAN"
+          echo "PHASE 4: SECURITY SCAN"
           echo "========================="
           echo ""
           
@@ -112,26 +119,26 @@ jobs:
             echo "Installing bandit..."
             pip install bandit
           fi
-          echo "✅ Bandit available"
+          echo "Bandit available"
           echo ""
           
           # 3. Run quick scan (optional - can skip if you want)
           echo "Running quick security scan..."
-          bandit -r . -f json -o bandit-results.json || echo "⚠️ Scan failed, continuing..."
+          bandit -r . -f json -o bandit-results.json || echo "Scan failed, continuing..."
           
           if [ -f "bandit-results.json" ]; then
             echo "Scan result saved in bandit-results.json"
           fi
           echo ""
-          echo "✅ SECURITY PHASE COMPLETED"
+          echo "SECURITY PHASE COMPLETED"
       
       # ======================================================
-      # PHASE 2: RUN TESTS WITH pytest
+      # PHASE 5: RUN TESTS WITH PYTEST
       # ======================================================
       - name: Run Tests with pytest
         id: test-phase
         run: |
-          echo "PHASE 2: RUN TESTS"
+          echo "PHASE 5: RUN TESTS"
           echo "====================="
           echo ""
           
@@ -188,12 +195,13 @@ jobs:
           echo ""
           
           if [ "${{ job.status }}" = "success" ]; then
-            echo "✅ PIPELINE COMPLETED SUCCESSFULLY!"
-            echo "✅ Environment configured correctly"
-            echo "✅ Tests executed"
-            echo "✅ Ready for next steps"
+            echo "PIPELINE COMPLETED SUCCESSFULLY!"
+            echo "Environment configured correctly"
+            echo "Tests executed"
+            echo "Build completed"
+            echo "Ready for next steps"
           else
-            echo "⚠️ Some phases failed"
+            echo "Some phases failed"
             echo "Check logs for details"
           fi
           

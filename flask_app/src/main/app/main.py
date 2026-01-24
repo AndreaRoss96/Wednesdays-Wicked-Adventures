@@ -19,6 +19,8 @@ def park_detail(park_id):
 @main.route('/profile')
 @login_required
 def profile():
+    if current_user.has_role('admin'):
+        return redirect(url_for('admin.index'))
     return render_template('profile.html', name=current_user.name)
 
 @main.route('/booking/new')
@@ -53,20 +55,37 @@ def health_safety_guidelines():
     current_date = datetime.now()
     return render_template('health_safety_guidelines.html', now=current_date)
 
-@main.route('/contact', methods=['GET', 'POST'])
-def contact():
-    parks = Park.query.all()
-    if request.method == 'POST':
+@main.route('/contact', methods=['GET'])
+def contact_page():
+    return redirect(url_for('main.index', _anchor='contact'))
+
+@main.route('/contact', methods=['POST'])
+def contact_submit():
+    referrer = request.referrer or url_for('main.index')
+    
+    if '#contact' in referrer:
+        referrer = referrer.split('#')[0]
+    
+    try:
+        if not all([request.form.get('name'), 
+                    request.form.get('email'), 
+                    request.form.get('message')]):
+            flash('Please fill in all fields.', 'error')
+            return redirect(referrer + '#contact')
+        
         message = Message(
             name=request.form['name'],
             email=request.form['email'],
             message=request.form['message']
         )
-
+        
         db.session.add(message)
         db.session.commit()
-
-        flash('Thank you for your message!')
-        return render_template('index.html', parks=parks)
         
-    return render_template('index.html', parks=parks)
+        flash('Thank you for your message! We will get back to you soon.', 'success')
+        
+    except Exception as e:
+        print(f"Error sending message: {e}")
+        flash('Sorry, there was an error sending your message. Please try again.', 'error')
+    
+    return redirect(referrer + '#contact')

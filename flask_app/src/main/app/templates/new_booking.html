@@ -17,6 +17,7 @@
 
             <!-- Booking Form -->
             <form method="POST" action="{{ url_for('main.booking') }}" class="auth-form">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                 <!-- Park Selection -->
                 <div class="auth-form-group">
                     <label class="auth-form-label">Park</label>
@@ -62,9 +63,11 @@
                 <!-- Health Safety Agreement -->
                 <div class="auth-form-group">
                     <div class="auth-checkbox">
-                        <input type="checkbox" id="health_safety" name="health_safety" required>
-                        <label for="health_safety">
-                            I acknowledge and agree to the <a href="{{ url_for('main.health_safety_guidelines') }}" target="_blank" class="terms-link">health & safety guidelines</a>
+                    <input type="checkbox" id="health_safety" name="health_safety" disabled required>
+                    <label for="health_safety">
+                        I acknowledge and agree to the <a href="{{ url_for('main.health_safety_guidelines') }}" target="_blank" id="health-link">
+                        health & safety guidelines
+                    </a> 
                         </label>
                     </div>
                 </div>

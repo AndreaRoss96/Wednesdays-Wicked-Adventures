@@ -34,6 +34,7 @@
             ) %}
             
                 <form class="auth-form" method="POST" action="{{ url_for('login.login') }}" id="loginForm">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                     <div class="auth-form-group">
                         <label class="auth-form-label" for="email">Email</label>
                         <input type="email" id="email" name="email" class="auth-form-input" placeholder="your@email.com" required>
