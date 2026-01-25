@@ -119,14 +119,99 @@ Booking Form Validation
 /* ============================
 Checkbox Handling 
 =============================*/
+/* Save Form Data Before Navigating to Health & Safety Guidelines */
 
+    document.addEventListener('DOMContentLoaded', function() {
+        const form = document.getElementById('bookingForm');
+        const healthLink = document.getElementById('health-link');
+        const backLink = document.getElementById('backToProfile');
+        const checkbox = document.getElementById('health_safety');
+    
+    if (checkbox) {
+        checkbox.disabled = true;
+    }
+    
+    if (healthLink) {
+        healthLink.addEventListener('click', function(e) {
+            const formData = {
+                park_id: document.getElementById('parkSelect').value,
+                date: document.getElementById('visitDate').value,
+                num_tickets: document.getElementById('numTickets').value
+            };
+            
+            sessionStorage.setItem('bookingFormData', JSON.stringify(formData));
+        });
+    }
+    
+    const savedData = sessionStorage.getItem('bookingFormData');
+    if (savedData) {
+        try {
+            const formData = JSON.parse(savedData);
+            
+            if (formData.park_id) {
+                const parkSelect = document.getElementById('parkSelect');
+                if (parkSelect) {
+                    parkSelect.value = formData.park_id;
+                }
+            }
+            
+            if (formData.date) {
+                const visitDate = document.getElementById('visitDate');
+                if (visitDate) {
+                    visitDate.value = formData.date;
+                }
+            }
+            
+            if (formData.num_tickets) {
+                const numTickets = document.getElementById('numTickets');
+                if (numTickets) {
+                    numTickets.value = formData.num_tickets;
+                }
+            }
+        } catch (e) {
+            console.error('Error parsing saved form data:', e);
+        }
+    }
+    
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.get('health_safety_read') === 'true') {
+        if (checkbox) {
+            checkbox.disabled = false;
+            checkbox.checked = true;
+        }
+        
+        const newUrl = window.location.pathname;
+        window.history.replaceState({}, '', newUrl);
+    }
+    
+    if (form) {
+        form.addEventListener('submit', function() {
+            sessionStorage.removeItem('bookingFormData');
+        });
+    }
+    
+    if (backLink) {
+        backLink.addEventListener('click', function() {
+            sessionStorage.removeItem('bookingFormData');
+        });
+    }
+    
+    if (form) {
+        form.addEventListener('submit', function(e) {
+            if (checkbox && !checkbox.checked) {
+                e.preventDefault();
+                alert('You must acknowledge and agree to the health & safety guidelines.');
+                healthLink.scrollIntoView({ behavior: 'smooth' });
+                return false;
+            }
+        });
+    }
+});
+
+/* Return to Booking Button */
 document.addEventListener('DOMContentLoaded', function() {
-    const checkbox = document.getElementById('health_safety');
-    const link = document.getElementById('health-link');
-
-    if (!checkbox || !link) return;
-
-    link.addEventListener('click', () => {
-        checkbox.disabled = false;
-    });
+    const returnBtn = document.getElementById('returnToBooking');
+    if (returnBtn) {
+        localStorage.setItem('healthSafetyRead', 'true');
+    }
 });
