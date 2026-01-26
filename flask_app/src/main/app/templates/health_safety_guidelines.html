@@ -52,7 +52,7 @@
         
         <div class="acknowledgment-box">
             <p>By confirming your reservation, you acknowledge that you have reviewed and agree to comply with all health and safety guidelines outlined above.</p>
-            <a href="{{ url_for('main.new_booking') }}" class="btn btn-primary">Return to Booking</a>
+            <a href="{{ url_for('main.new_booking') }}?health_safety_read=true" class="btn btn-primary" id="returnToBooking">Return to Booking</a>
         </div>
     </div>
 </div>

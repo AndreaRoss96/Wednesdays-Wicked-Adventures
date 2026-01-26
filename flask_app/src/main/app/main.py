@@ -27,7 +27,8 @@ def profile():
 @login_required
 def new_booking():
     parks = Park.query.all()
-    return render_template('new_booking.html', parks=parks)
+    today = datetime.now().strftime('%Y-%m-%d')
+    return render_template('new_booking.html', parks=parks, today=today)
 
 @main.route('/booking', methods=['GET', 'POST'])
 @login_required

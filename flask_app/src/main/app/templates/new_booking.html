@@ -16,13 +16,14 @@
             </div>
 
             <!-- Booking Form -->
-            <form method="POST" action="{{ url_for('main.booking') }}" class="auth-form">
-                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <form method="POST" action="{{ url_for('main.booking') }}" class="auth-form" id="bookingForm">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            
                 <!-- Park Selection -->
                 <div class="auth-form-group">
                     <label class="auth-form-label">Park</label>
                     <div class="select-wrapper">
-                        <select name="park_id" class="auth-form-input" required style="padding-right: 2.5rem;">
+                        <select name="park_id" class="auth-form-input" id="parkSelect" required style="padding-right: 2.5rem;">
                             <option value="" disabled selected>Choose a park...</option>
                             {% for park in parks %}
                             <option value="{{ park.park_id }}">{{ park.name }} - {{ park.location }}</option>
@@ -42,6 +43,7 @@
                     <input class="auth-form-input" 
                            type="date" 
                            name="date" 
+                           id="visitDate"
                            required
                            min="{{ today }}">
                     <small class="auth-form-hint">Select the day of your visit</small>
@@ -53,6 +55,7 @@
                     <input class="auth-form-input" 
                            type="number" 
                            name="num_tickets" 
+                           id="numTickets"
                            value="1" 
                            min="1" 
                            max="10" 
@@ -63,11 +66,12 @@
                 <!-- Health Safety Agreement -->
                 <div class="auth-form-group">
                     <div class="auth-checkbox">
-                    <input type="checkbox" id="health_safety" name="health_safety" disabled required>
-                    <label for="health_safety">
-                        I acknowledge and agree to the <a href="{{ url_for('main.health_safety_guidelines') }}" target="_blank" id="health-link">
-                        health & safety guidelines
-                    </a> 
+                        <input type="checkbox" id="health_safety" name="health_safety" disabled required>
+                        <label for="health_safety">
+                            I acknowledge and agree to the 
+                            <a href="{{ url_for('main.health_safety_guidelines') }}" id="health-link">
+                                health & safety guidelines
+                            </a> 
                         </label>
                     </div>
                 </div>
@@ -85,7 +89,7 @@
 
             <!-- Back Link -->
             <div class="auth-card-links">
-                <a href="{{ url_for('main.profile') }}" class="auth-card-link">
+                <a href="{{ url_for('main.profile') }}" class="auth-card-link" id="backToProfile">
                     <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right: 0.5rem; vertical-align: middle;">
                         <path d="M19 12H5M12 19l-7-7 7-7"/>
                     </svg>
