@@ -1,0 +1,63 @@
+site_name: Wednesday's Wicked Adventures
+site_description: Documentation for Horror Park Booking System
+site_author: ATU DevOps Group 3
+
+# Repository
+repo_name: Wednesdays-Wicked-Adventures
+repo_url: https://github.com/L00188348/Wednesdays-Wicked-Adventures
+
+# Theme
+theme:
+  name: material
+  palette:
+    - scheme: default
+      primary: deep purple
+      accent: orange
+      toggle:
+        icon: material/brightness-7
+        name: Switch to dark mode
+    - scheme: slate
+      primary: deep purple
+      accent: orange
+      toggle:
+        icon: material/brightness-4
+        name: Switch to light mode
+  features:
+    - navigation.instant
+    - navigation.sections
+    - navigation.top
+    - search.highlight
+    - content.code.copy
+
+# Navigation
+nav:
+  - Home: index.md
+  - Getting Started:
+    - Local Setup: setup-local.md
+  - Development:
+    - CI/CD Pipeline: pipeline.md
+    - Testing & Quality: testing-quality.md
+  - Operations:
+    - Security: security.md
+    - Admin Guide: admin.md
+
+# Extensions
+markdown_extensions:
+  - tables
+  - admonition
+  - pymdownx.highlight:
+      anchor_linenums: true
+  - pymdownx.superfences
+  - pymdownx.tabbed:
+      alternate_style: true
+  - attr_list
+
+# Plugins
+plugins:
+  - search
+
+# Extra
+extra:
+  social:
+    - icon: fontawesome/brands/github
+      link: https://github.com/L00188348/Wednesdays-Wicked-Adventures
