@@ -21,12 +21,9 @@ from app.models import User, Role, Park, Booking
 from werkzeug.security import generate_password_hash
 from datetime import datetime
 
-@pytest.fixture(scope='session')
+@pytest.fixture(scope='function')
 def app():
-    """
-    Simulate application for testing
-    """
-    # Create a temporary database file
+    """Create application for testing"""
     test_app = create_app('testing')
     
     # Ensure config is applied
@@ -35,11 +32,12 @@ def app():
         'SQLALCHEMY_DATABASE_URI': 'sqlite:///:memory:',
         'SQLALCHEMY_TRACK_MODIFICATIONS': False,
         'SECRET_KEY': 'test-secret-key',
-        'WTF_CSRF_ENABLED': False  # Disable CSRF for testing
+        'WTF_CSRF_ENABLED': False
     })
     
     with test_app.app_context():
         db.create_all()
+        # Seed data for each test
         _create_test_data()
         
     yield test_app
@@ -94,8 +92,9 @@ def authenticated_client(client, app):
     """
     with app.app_context():
         user = User.query.filter_by(email='test@example.com').first()
-        with client.session_transaction() as sess:
-            sess['_user_id'] = str(user.user_id)
+        if user:  # Only authenticate if test user exists
+            with client.session_transaction() as sess:
+                sess['_user_id'] = str(user.user_id)
     return client
 
 def _create_test_data():
@@ -107,6 +106,11 @@ def _create_test_data():
     admin_role = Role(role_id=2, name='admin')
     db.session.add(user_role)
     db.session.add(admin_role)
+    db.session.commit()
+
+    # Get role IDs after commit
+    admin = Role.query.filter_by(name='admin').first()
+    user = Role.query.filter_by(name='user').first()
 
     # Create test users
     test_user = User(
@@ -114,14 +118,14 @@ def _create_test_data():
         last_name='User',
         email='test@example.com',
         password=generate_password_hash('password123', method='pbkdf2:sha256'),
-        role_id=1
+        role_id=user.role_id
     )
     admin_user = User(
         name='Admin',
         last_name='User',
         email='admin@example.com',
         password=generate_password_hash('admin123', method='pbkdf2:sha256'),
-        role_id=2
+        role_id=admin.role_id
     )
     db.session.add(test_user)
     db.session.add(admin_user)

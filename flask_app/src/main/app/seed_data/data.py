@@ -5,8 +5,12 @@ import os
 
 def seed_dev_data():
     # prevent duplicate seeding
-    if Role.query.first() or Park.query.first():
+    roles_exist = Role.query.first() is not None
+    parks_exist = Park.query.first() is not None
+
+    if roles_exist and parks_exist:
         return
+
 
     # Roles
     admin_role = Role(name="admin")
