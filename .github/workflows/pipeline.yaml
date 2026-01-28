@@ -26,6 +26,8 @@ jobs:
       # ======================================================
       - name: Checkout repository
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # Shallow clones disabled for SonarCloud
       
       # ======================================================
       # STEP 2: SETUP PYTHON
@@ -155,63 +157,34 @@ jobs:
           
           echo "Running pytest..."
           cd "${{ github.workspace }}/flask_app/src"
-          python -m pytest tests/ -v --cov=app --cov-report=term-missing
+          python -m pytest --cov=app --cov-report=xml --cov-report=term-missing
           
           echo ""
-          echo "TESTS EXECUTED SUCCESSFULLY"
+          echo "✅ TESTS EXECUTED SUCCESSFULLY"
 
       # ======================================================
-      # PHASE 6: BUILD PHASE WITH PYBUILDER
+      # PHASE 3: SONARCLOUD ANALYSIS
       # ======================================================
-      - name: Build Flask App (Package + Lint)
-        id: build-phase
-        run: |
-          echo "PHASE 6: BUILD STAGE"
-          echo "====================="
-          echo ""
-
-          # 1. Activate venv
-          cd flask_app/src/main
-          source venv/bin/activate
-          echo "Using Python: $(which python)"
-          echo ""
-
-          # 2. Install build & lint tools
-          echo "Installing build tools..."
-          python -m pip install --upgrade pip
-          python -m pip install pybuilder
-          python -m pip install flake8
-          echo ""
-
-          # 3. Run flake8 
-          echo "Running flake8..."
-          cd ../
-          flake8 main/app --statistics --count || true
-          echo ""
-
-          # 4. Build Python package
-          echo "Building Python package..."
-          pyb
-          echo ""
-          cd target/dist
-          echo "Build artifacts created in dist/"
-          echo "Current working directory: $(pwd)"
-          ls -l
-          cd wednesdays-wicked-adventures-1.0.dev0
-          echo "Current dir: wednesdays-wicked-adventures-1.0.dev0"
-          ls -l 
-          echo "ls -l dist"
-          ls -l dist
-          unzip -l dist/wednesdays_wicked_adventures-1.0.dev0-py3-none-any.whl | grep / # wednesdays_wicked_adventures-1.0.dev0-py3-none-any.whl
-          echo "" 
+      - name: SonarCloud Scan
+        id: sonar-phase
+        uses: SonarSource/sonarqube-scan-action@v5.0.0
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+        with:
+          projectBaseDir: flask_app/src
+          args: >
+            -Dsonar.projectKey=AndreaRoss96_Wednesdays-Wicked-Adventures
+            -Dsonar.organization=andreaross96
+            -Dsonar.verbose=true
       
       # ======================================================
-      # PHASE 7: PIPELINE SUMMARY
+      # PHASE 4: PIPELINE SUMMARY
       # ======================================================
       - name: Pipeline Summary
         if: always()
         run: |
-          echo "PHASE 7: PIPELINE SUMMARY"
+          echo "PHASE 4: PIPELINE SUMMARY"
           echo "============================"
           echo ""
           echo "Results:"

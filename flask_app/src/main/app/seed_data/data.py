@@ -1,11 +1,16 @@
 from app import db
 from app.models import User, Role, Park
 from werkzeug.security import generate_password_hash
+import os
 
 def seed_dev_data():
     # prevent duplicate seeding
-    if Role.query.first() or Park.query.first():
+    roles_exist = Role.query.first() is not None
+    parks_exist = Park.query.first() is not None
+
+    if roles_exist and parks_exist:
         return
+
 
     # Roles
     admin_role = Role(name="admin")
@@ -14,12 +19,19 @@ def seed_dev_data():
     db.session.add_all([admin_role, customer_role])
     db.session.commit()
 
+    # Retrieve password from environment or use a secure fallback for local dev only
+    # !!! For production, ensure the env var is set and remove the default value. !!!
+    dev_password = os.environ.get("SEED_ADMIN_PASSWORD")
+    
+    if not dev_password:
+        raise ValueError("SEED_ADMIN_PASSWORD environment variable is not set.")
+
     # Admin users
     admin1 = User(
         name="Admin",
         last_name="One",
         email="admin1@example.com",
-        password=generate_password_hash("admin123", method='pbkdf2:sha256'),
+        password=generate_password_hash(dev_password, method='pbkdf2:sha256'),
         role=admin_role
     )
 
@@ -27,7 +39,7 @@ def seed_dev_data():
         name="Admin",
         last_name="Two",
         email="admin2@example.com",
-        password=generate_password_hash("admin123", method='pbkdf2:sha256'),
+        password=generate_password_hash(dev_password, method='pbkdf2:sha256'),
         role=admin_role
     )
 
