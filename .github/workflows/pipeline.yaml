@@ -157,7 +157,7 @@ jobs:
           
           echo "Running pytest..."
           cd "${{ github.workspace }}/flask_app/src"
-          python -m pytest tests/ -v --cov=app --cov-report=term-missing
+          python -m pytest 
           
           echo ""
           echo "✅ TESTS EXECUTED SUCCESSFULLY"
