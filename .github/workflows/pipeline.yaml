@@ -175,7 +175,7 @@ jobs:
           projectBaseDir: flask_app/src
           args: >
             -Dsonar.projectKey=AndreaRoss96_Wednesdays-Wicked-Adventures
-            -Dsonar.organization=AndreaRoss96
+            -Dsonar.organization=andreaross96
             -Dsonar.verbose=true
       
       # ======================================================
