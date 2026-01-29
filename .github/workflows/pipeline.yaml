@@ -55,13 +55,13 @@ jobs:
           echo "Current directory: $(pwd)"
           echo ""
           
-          # 1. Create venv 
+          # Create venv 
           echo "Creating virtual environment..."
           python3 -m venv venv
           echo "Venv created at: $(pwd)/venv"
           echo ""
           
-          # 2. Activate venv
+          # Activate venv
           echo "Activating venv..."
           source venv/bin/activate
           echo "Venv activated"
@@ -69,19 +69,19 @@ jobs:
           echo "Version: $(python --version)"
           echo ""
           
-          # 3. Update pip
+          # Update pip
           echo "Upgrading pip..."
           python -m pip install --upgrade pip
           echo ""
           
-          # 4. Install requirements 
+          # Install requirements 
           echo "Installing requirements.txt..."
           echo "From: ../requirements.txt"
           pip install -r ../requirements.txt
           echo "Requirements installed"
           echo ""
           
-          # 5. Install extra packages 
+          # Install extra packages 
           echo "Checking pytest..."
           if ! pip show pytest >/dev/null 2>&1; then
             echo "Installing pytest..."
@@ -90,7 +90,7 @@ jobs:
           echo "Pytest available"
           echo ""
           
-          # 6. Show pytest
+          # Show pytest
           echo "Showing pytest..."
           pip show Flask pytest | grep -E "^(Name|Version):" || true
           echo ""
@@ -98,23 +98,50 @@ jobs:
           echo "SETUP COMPLETED SUCCESSFULLY"
       
       # ======================================================
-      # PHASE 4: SECURITY SCAN (SAST) - BANDIT
+      # PHASE 4: CODE QUALITY - FLAKE8 LINTING
+      # ======================================================
+      - name: Code Quality - Flake8 Linting
+        id: lint-phase
+        run: |
+          echo "PHASE 4: CODE QUALITY - FLAKE8"
+          echo "================================"
+          
+          # Activate venv and go to project
+          echo "Activating venv..."
+          cd flask_app/src/main
+          source venv/bin/activate
+          echo "Directory: $(pwd)"
+          echo ""
+
+          echo "Flake8 version: $(flake8 --version)"
+          
+          flake8 . \
+            --count \
+            --select=E9,F63,F7,F82 \
+            --show-source \
+            --statistics \
+            --exclude=venv,__pycache__,.git,.pytest_cache
+          
+          echo "FLAKE8 LINTING COMPLETED"
+      
+      # ======================================================
+      # PHASE 5: SECURITY SCAN (SAST) - BANDIT
       # ======================================================
       - name: Security Scan (SAST)
         id: security-phase
         run: |
-          echo "PHASE 4: SECURITY SCAN"
+          echo "PHASE 5: SECURITY SCAN"
           echo "========================="
           echo ""
           
-          # 1. Activate venv and go to project
+          # Activate venv and go to project
           echo "Activating venv..."
           cd flask_app/src/main
           source venv/bin/activate
           echo "Directory: $(pwd)"
           echo ""
           
-          # 2. Install bandit if needed
+          # Install bandit if needed
           echo "Checking bandit..."
           if ! pip show bandit >/dev/null 2>&1; then
             echo "Installing bandit..."
@@ -123,7 +150,7 @@ jobs:
           echo "Bandit available"
           echo ""
           
-          # 3. Run quick scan (optional)
+          # Run quick scan (optional)
           echo "Running quick security scan..."
           bandit -r . -f json -o bandit-results.json || echo "Scan failed, continuing..."
           
@@ -134,16 +161,16 @@ jobs:
           echo "SECURITY PHASE COMPLETED"
       
       # ======================================================
-      # PHASE 5: RUN TESTS WITH PYTEST
+      # PHASE 6: RUN TESTS WITH PYTEST
       # ======================================================
       - name: Run Tests with pytest
         id: test-phase
         run: |
-          echo "PHASE 5: RUN TESTS"
+          echo "PHASE 6: RUN TESTS"
           echo "====================="
           echo ""
           
-          # 1. Activate venv and go to project
+          # Activate venv and go to project
           echo "Activating venv..."
           cd flask_app/src/main
           source venv/bin/activate
@@ -151,7 +178,7 @@ jobs:
           echo "Python: $(which python)"
           echo ""
           
-          # 2. Check test structure
+          # Check test structure
           echo "Test structure:"
           find . -name "*test*.py" -type f | head -10 || echo "No tests found"
           echo ""
@@ -164,7 +191,7 @@ jobs:
           echo "TESTS EXECUTED SUCCESSFULLY"
 
       # ======================================================
-      # PHASE 6: SONARCLOUD ANALYSIS
+      # PHASE 7: SONARCLOUD ANALYSIS
       # ======================================================
       - name: SonarCloud Scan
         id: sonar-phase
@@ -180,12 +207,12 @@ jobs:
             -Dsonar.verbose=true
       
       # ======================================================
-      # PHASE 7: PIPELINE SUMMARY
+      # PHASE 8: PIPELINE SUMMARY
       # ======================================================
       - name: Pipeline Summary
         if: always()
         run: |
-          echo "PHASE 7: PIPELINE SUMMARY"
+          echo "PHASE 8: PIPELINE SUMMARY"
           echo "============================"
           echo ""
           echo "Results:"

@@ -8,6 +8,7 @@ WTForms==3.1.2
 Flask-WTF==1.2.2
 flask-wtf==1.2.2
 python-dotenv
+flake8
 
 pytest==7.4.3
 pytest-cov==4.1.0
