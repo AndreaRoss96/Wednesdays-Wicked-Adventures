@@ -231,6 +231,7 @@ jobs:
           echo "Results:"
           echo "--------"
           echo "Setup Environment....: ${{ steps.setup-phase.conclusion || 'unknown' }}"
+          echo "Flake8 Linting.......: ${{ steps.lint-phase.conclusion || 'unknown' }}"
           echo "Security Scan........: ${{ steps.security-phase.conclusion || 'unknown' }}"
           echo "Test Execution.......: ${{ steps.test-phase.conclusion || 'unknown' }}"
           echo ""
