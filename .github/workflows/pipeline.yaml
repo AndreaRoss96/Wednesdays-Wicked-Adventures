@@ -5,7 +5,6 @@ name: CI/CD Pipeline
 
 on:
   push:
-    #branches: [UAT, feature/*]
     branches: [feature/*]
   pull_request:
     branches: [main]
@@ -18,7 +17,8 @@ jobs:
     timeout-minutes: 15
     env:
       SECRET_KEY: ${{ secrets.SECRET_KEY }}
-      FLASK_ENV: testing 
+      SEED_ADMIN_PASSWORD: ${{ secrets.SEED_ADMIN_PASSWORD }}
+      FLASK_ENV: development 
     
     steps:
       # ======================================================
@@ -35,10 +35,10 @@ jobs:
       - name: Setup Python
         uses: actions/setup-python@v5
         with:
-          python-version: "3.11"
+          python-version: "3.9.7"
       
       # ======================================================
-      # PHASE 3: SETUP ENVIRONMENT (AS PER LOCAL)
+      # PHASE 3: SETUP ENVIRONMENT
       # ======================================================
       - name: Setup Virtual Environment
         id: setup-phase
@@ -48,13 +48,14 @@ jobs:
           echo ""
           echo "Checking environment variables..."
           echo "SECRET_KEY is set: ${{ env.SECRET_KEY != '' }}"
+          echo "SEED_ADMIN_PASSWORD is set: ${{ env.SEED_ADMIN_PASSWORD != '' }}"
           echo ""
           echo "Going to: flask_app/src/main"
           cd flask_app/src/main
           echo "Current directory: $(pwd)"
           echo ""
           
-          # 1. Create venv (exactly as you do locally)
+          # 1. Create venv 
           echo "Creating virtual environment..."
           python3 -m venv venv
           echo "Venv created at: $(pwd)/venv"
@@ -73,14 +74,14 @@ jobs:
           python -m pip install --upgrade pip
           echo ""
           
-          # 4. Install requirements (one level up)
+          # 4. Install requirements 
           echo "Installing requirements.txt..."
           echo "From: ../requirements.txt"
           pip install -r ../requirements.txt
           echo "Requirements installed"
           echo ""
           
-          # 5. Install extra packages (pytest is already in requirements)
+          # 5. Install extra packages 
           echo "Checking pytest..."
           if ! pip show pytest >/dev/null 2>&1; then
             echo "Installing pytest..."
@@ -89,8 +90,8 @@ jobs:
           echo "Pytest available"
           echo ""
           
-          # 6. Basic verification only
-          echo "Basic verification..."
+          # 6. Show pytest
+          echo "Showing pytest..."
           pip show Flask pytest | grep -E "^(Name|Version):" || true
           echo ""
           
@@ -122,7 +123,7 @@ jobs:
           echo "Bandit available"
           echo ""
           
-          # 3. Run quick scan (optional - can skip if you want)
+          # 3. Run quick scan (optional)
           echo "Running quick security scan..."
           bandit -r . -f json -o bandit-results.json || echo "Scan failed, continuing..."
           
@@ -160,10 +161,10 @@ jobs:
           python -m pytest --cov=app --cov-report=xml --cov-report=term-missing
           
           echo ""
-          echo "✅ TESTS EXECUTED SUCCESSFULLY"
+          echo "TESTS EXECUTED SUCCESSFULLY"
 
       # ======================================================
-      # PHASE 3: SONARCLOUD ANALYSIS
+      # PHASE 6: SONARCLOUD ANALYSIS
       # ======================================================
       - name: SonarCloud Scan
         id: sonar-phase
@@ -179,12 +180,12 @@ jobs:
             -Dsonar.verbose=true
       
       # ======================================================
-      # PHASE 4: PIPELINE SUMMARY
+      # PHASE 7: PIPELINE SUMMARY
       # ======================================================
       - name: Pipeline Summary
         if: always()
         run: |
-          echo "PHASE 4: PIPELINE SUMMARY"
+          echo "PHASE 7: PIPELINE SUMMARY"
           echo "============================"
           echo ""
           echo "Results:"

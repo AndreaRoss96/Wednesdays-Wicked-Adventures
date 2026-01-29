@@ -15,6 +15,7 @@ PyMySQL==1.1.2
 flask-login==0.6.3
 Flask-Admin==1.6.1
 WTForms==3.1.2
+python-dotenv
 
 ## Testing packages
 pytest==7.4.3
