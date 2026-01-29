@@ -1,0 +1,6 @@
+include requirements.txt
+include README.md
+recursive-include main/app/templates *
+recursive-include main/app/static *
+global-exclude __pycache__
+global-exclude *.py[co]
