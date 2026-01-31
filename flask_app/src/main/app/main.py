@@ -19,8 +19,6 @@ def park_detail(park_id):
 @main.route('/profile')
 @login_required
 def profile():
-    if current_user.has_role('admin'):
-        return redirect(url_for('admin.index'))
     return render_template('profile.html', name=current_user.name)
 
 @main.route('/booking/new')
