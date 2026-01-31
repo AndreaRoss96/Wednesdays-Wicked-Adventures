@@ -7,7 +7,8 @@ Flask-Admin==1.6.1
 WTForms==3.1.2
 Flask-WTF==1.2.2
 flask-wtf==1.2.2
-python-dotenv
+python-dotenv==1.2.1
+flake8==7.3.0
 
 pytest==7.4.3
 pytest-cov==4.1.0

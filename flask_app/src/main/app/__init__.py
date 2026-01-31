@@ -24,7 +24,12 @@ def set_sqlite_pragma(dbapi_connection, connection_record):
 
 def create_app(config_name="development"): 
 
-    app = Flask(__name__)
+    basedir = os.path.abspath(os.path.dirname(__file__))
+    
+    app = Flask(__name__,
+                template_folder=os.path.join(basedir, 'templates'),
+                static_folder=os.path.join(basedir, 'static'))
+    
     app.config.from_object(config[config_name])
     db.init_app(app)
     csrf.init_app(app)
