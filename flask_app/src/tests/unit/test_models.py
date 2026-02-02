@@ -12,6 +12,10 @@ from app.models import User, Role, Park, Booking, Message
 from werkzeug.security import generate_password_hash, check_password_hash
 from datetime import datetime
 
+from unittest.mock import patch, MagicMock
+from app.models import AppModelView, AppIndexView, UserView, User, Role, Park
+from app import db
+
 class TestUserModel:
     """Test User model"""
 
@@ -434,3 +438,111 @@ class TestMessageModel:
             assert 'email' in json_data
             assert 'message' in json_data
             assert 'created_at' in json_data
+
+class TestAppModelView:
+    
+    def test_is_accessible_admin(self, app):
+        """ test is_accessible function"""
+        with app.app_context():
+            view = AppModelView(User, None)
+            with patch('app.models.current_user') as mock_user:
+                mock_user.is_authenticated = True
+                mock_user.has_role = MagicMock(return_value=True)
+                result = view.is_accessible()
+                assert result == True
+    
+    def test_is_accessible_not_admin(self, app):
+        """test is_accessible returns False for non-admin"""
+        with app.app_context():
+            view = AppModelView(User, None)
+            with patch('app.models.current_user') as mock_user:
+                mock_user.is_authenticated = True
+                mock_user.has_role = MagicMock(return_value=False)
+                result = view.is_accessible()
+                assert result == False
+    
+    def test_inaccessible_callback(self, app):
+        """test inaccessible_callback flashes and redirects"""
+        with app.app_context():
+            view = AppModelView(User, None)
+            with patch('app.models.flash') as mock_flash:
+                with patch('app.models.redirect') as mock_redirect:
+                    with patch('app.models.url_for') as mock_url_for:
+                        mock_redirect.return_value = MagicMock()
+                        view.inaccessible_callback('test')
+                        
+                        mock_flash.assert_called_once()
+                        mock_url_for.assert_called_once_with("login.login")
+                        mock_redirect.assert_called_once()
+
+class TestAppIndexView:
+    """Test AppIndexView"""
+    
+    def test_is_accessible_admin(self, app):
+        """is_accessible returns True for admin"""
+        with app.app_context():
+            view = AppIndexView()
+            with patch('app.models.current_user') as mock_user:
+                mock_user.is_authenticated = True
+                mock_user.has_role = MagicMock(return_value=True)
+                result = view.is_accessible()
+                assert result == True
+    
+    def test_is_accessible_not_admin(self, app):
+        """is_accessible returns False for non-admin"""
+        with app.app_context():
+            view = AppIndexView()
+            with patch('app.models.current_user') as mock_user:
+                mock_user.is_authenticated = False
+                mock_user.has_role = MagicMock(return_value=False)
+                result = view.is_accessible()
+                assert result == False
+    
+    def test_inaccessible_callback(self, app):
+        """inaccessible_callback flashes and redirects"""
+        with app.app_context():
+            view = AppIndexView()
+            with patch('app.models.flash') as mock_flash:
+                with patch('app.models.redirect') as mock_redirect:
+                    with patch('app.models.url_for') as mock_url_for:
+                        mock_redirect.return_value = MagicMock()
+                        view.inaccessible_callback('test')
+                        
+                        mock_flash.assert_called_once()
+                        mock_url_for.assert_called_once_with("login.login")
+                        mock_redirect.assert_called_once()
+
+
+class TestUserView:
+    """Test UserView"""
+    
+    def test_on_model_change_hashes_password(self, app):
+        """on_model_change hashes password"""
+        with app.app_context():
+            # Create a role first (check if exists)
+            role = Role.query.filter_by(name='user').first()
+            if not role:
+                role = Role(name='user')
+                db.session.add(role)
+                db.session.commit()
+            
+            view = UserView(User, None)
+            form = MagicMock()
+            
+            user = User(
+                name='Test',
+                last_name='User',
+                email='test@test.com',
+                password=generate_password_hash('pass', method='pbkdf2:sha256'),
+                role_id=role.role_id
+            )
+            
+            # Change password before calling on_model_change (simulating form submission)
+            new_password = 'newpass'
+            user.password = new_password
+            
+            view.on_model_change(form, user, is_created=False)
+            
+            # Password should be hashed after on_model_change
+            assert user.password != 'newpass'
+            assert check_password_hash(user.password, 'newpass')
