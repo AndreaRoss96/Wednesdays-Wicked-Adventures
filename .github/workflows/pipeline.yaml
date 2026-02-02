@@ -262,7 +262,7 @@ jobs:
   docker-build:
     name: Docker Build & Test
     runs-on: ubuntu-latest
-    needs: ci-pipeline  # runs oafter CI pipeline succeeds
+    needs: ci-pipeline  # runs after CI pipeline succeeds
     timeout-minutes: 15
     env:
       SECRET_KEY: ${{ secrets.SECRET_KEY }}
@@ -359,18 +359,13 @@ jobs:
           echo "Container ID: $(docker ps -q -f name=test-wicked)"
           echo ""
           
-          # wait for container to be ready
-          echo "waiting for container to start..."
-          sleep 10
-          echo ""
-          
           # check container status
           echo "Container status:"
           docker ps | grep test-wicked
           echo ""
           
           # check container logs
-          echo "Container logs (last 20 lines):"
+          echo "Container logs:"
           docker logs test-wicked --tail 20
           echo ""
           
