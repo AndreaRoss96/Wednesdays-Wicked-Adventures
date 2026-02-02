@@ -18,7 +18,7 @@ jobs:
     env:
       SECRET_KEY: ${{ secrets.SECRET_KEY }}
       SEED_ADMIN_PASSWORD: ${{ secrets.SEED_ADMIN_PASSWORD }}
-      FLASK_ENV: testing
+      FLASK_ENV: development
     
     steps:
       # ======================================================
@@ -204,7 +204,7 @@ jobs:
           echo "TESTS EXECUTED SUCCESSFULLY"
 
       # ======================================================
-      # PHASE 3: SONARCLOUD ANALYSIS (DISABLED)
+      # PHASE 7: SONARCLOUD ANALYSIS (DISABLED)
       # ======================================================
       - name: SonarCloud Scan
         id: sonar-phase
