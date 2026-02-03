@@ -18,7 +18,7 @@
       <span class="welcome-text">Welcome, {{ current_user.name }}!</span>
       
       {% if current_user.has_role('admin') %}
-        <a href="{{ url_for('admin.index') }}" class="account-link" target="_blank">Painel Admin</a>
+        <a href="{{ url_for('admin.index') }}" class="account-link" target="_blank">Admin Panel</a>
       {% else %}
         <a href="{{ url_for('main.profile') }}" class="account-link">Profile</a>
       {% endif %}
