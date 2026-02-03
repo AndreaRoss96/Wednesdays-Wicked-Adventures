@@ -163,7 +163,7 @@ jobs:
           echo "✅ TESTS EXECUTED SUCCESSFULLY"
 
       # ======================================================
-      # PHASE 3: SONARCLOUD ANALYSIS (DISABLED)
+      # PHASE 3: SONARCLOUD ANALYSIS
       # ======================================================
       - name: SonarCloud Scan
         id: sonar-phase
@@ -177,8 +177,8 @@ jobs:
             -Dsonar.projectKey=AndreaRoss96_Wednesdays-Wicked-Adventures
             -Dsonar.organization=andreaross96
             -Dsonar.verbose=true
-            -Dsonar.qualitygate.wait=false ###### Andrea LOOK HERE ######
-            -Dsonar.scm.disabled=true ###### Andrea LOOK HERE ######
+            -Dsonar.qualitygate.wait=false
+            -Dsonar.scm.disabled=true
       
       # ======================================================
       # PHASE 4: PIPELINE SUMMARY
