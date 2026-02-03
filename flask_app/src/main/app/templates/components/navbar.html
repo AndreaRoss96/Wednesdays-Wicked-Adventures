@@ -16,13 +16,14 @@
   <div class="navbar-end">
     {% if current_user.is_authenticated %}
       <span class="welcome-text">Welcome, {{ current_user.name }}!</span>
-      
+      <a href="{{ url_for('main.profile') }}" class="account-link">Profile</a>
+        
       {% if current_user.has_role('admin') %}
         <a href="{{ url_for('admin.index') }}" class="account-link" target="_blank">Admin Panel</a>
       {% else %}
         <a href="{{ url_for('main.profile') }}" class="account-link">Profile</a>
       {% endif %}
-      
+              
       <span class="separator">|</span>
       <a href="{{ url_for('login.logout') }}" class="account-link">Logout</a>
       <img src="{{ url_for('static', filename='images/Login_icon.svg') }}"
