@@ -358,6 +358,10 @@ jobs:
           echo "Container started"
           echo "Container ID: $(docker ps -q -f name=test-wicked)"
           echo ""
+
+          echo "wait for Flask to start..."
+          sleep 15  
+          echo ""
           
           # check container status
           echo "Container status:"
