@@ -28,23 +28,28 @@ def login_post():
     login_user(user, remember=False)
     return redirect(url_for('main.profile'))
 
-@auth_login.route('/forgot_password', methods=['GET', 'POST'])
-def forgot_password():
-    if request.method == 'POST':
-        email = request.form.get('email')
-        new_password = request.form.get('new_password')
-
-        user = User.query.filter_by(email=email).first()
-        if user:
-            user.password = generate_password_hash(new_password, method='pbkdf2:sha256')
-            db.session.commit()
-            flash("Password successfully updated. You can now login.")
-            return redirect(url_for('login.login'))
-        else:
-            flash("Email not found. Please check and try again.")
-            return redirect(url_for('login.forgot_password'))
-
+@auth_login.route('/forgot_password', methods=['GET'])
+def forgot_password_form():
     return render_template('forgot_password.html')
+
+@auth_login.route('/forgot_password', methods=['POST'])
+def forgot_password_submit():
+    email = request.form.get('email')
+    new_password = request.form.get('new_password')
+    
+    if not email or not new_password:
+        flash("Email and new password are required.")
+        return redirect(url_for('login.forgot_password_form'))
+    
+    user = User.query.filter_by(email=email).first()
+    if user:
+        user.password = generate_password_hash(new_password, method='pbkdf2:sha256')
+        db.session.commit()
+        flash("Password successfully updated. You can now login.")
+        return redirect(url_for('login.login'))
+    else:
+        flash("Email not found. Please check and try again.")
+        return redirect(url_for('login.forgot_password_form'))
 
 @auth_login.route('/register')
 def register():
