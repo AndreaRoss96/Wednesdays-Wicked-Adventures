@@ -28,24 +28,25 @@ def new_booking():
     today = datetime.now().strftime('%Y-%m-%d')
     return render_template('new_booking.html', parks=parks, today=today)
 
-@main.route('/booking', methods=['GET', 'POST'])
+@main.route('/booking', methods=['GET'])
 @login_required
-def booking():
-    if request.method == 'POST':
-        booking = Booking(
-            user_id=current_user.user_id,
-            park_id=request.form['park_id'],
-            date=datetime.fromisoformat(request.form['date']),
-            num_tickets=int(request.form['num_tickets']),
-            health_safety='health_safety' in request.form
-        )
+def booking_form():
+    return redirect(url_for('main.profile')), 302
 
-        db.session.add(booking)
-        db.session.commit()
+@main.route('/booking', methods=['POST'])
+@login_required
+def booking_submit():
+    booking = Booking(
+        user_id=current_user.user_id,
+        park_id=request.form['park_id'],
+        date=datetime.fromisoformat(request.form['date']),
+        num_tickets=int(request.form['num_tickets']),
+        health_safety='health_safety' in request.form
+    )
 
-        return redirect(url_for('main.profile'))
+    db.session.add(booking)
+    db.session.commit()
 
-    parks = Park.query.all()
     return redirect(url_for('main.profile'))
 
 @main.route('/health-safety-guidelines')
