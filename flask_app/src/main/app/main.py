@@ -31,8 +31,7 @@ def new_booking():
 @main.route('/booking', methods=['GET'])
 @login_required
 def booking_form():
-    parks = Park.query.all()
-    return render_template('new_booking.html', parks=parks) 
+    return redirect(url_for('main.new_booking')), 302
 
 @main.route('/booking', methods=['POST'])
 @login_required
