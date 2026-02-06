@@ -31,7 +31,7 @@ def new_booking():
 @main.route('/booking', methods=['GET'])
 @login_required
 def booking_form():
-    return redirect(url_for('main.new_booking')), 302
+    return redirect(url_for('main.profile')), 302
 
 @main.route('/booking', methods=['POST'])
 @login_required
