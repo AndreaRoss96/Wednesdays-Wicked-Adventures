@@ -11,6 +11,9 @@ on:
   workflow_dispatch:
 
 jobs:
+  # ============================================================
+  # JOB 1: BUILD AND TEST
+  # ============================================================
   ci-pipeline:
     name: CI/CD Pipeline
     runs-on: ubuntu-latest
@@ -204,7 +207,7 @@ jobs:
           echo "TESTS EXECUTED SUCCESSFULLY"
 
       # ======================================================
-      # PHASE 3: SONARCLOUD ANALYSIS
+      # PHASE 7: SONARCLOUD ANALYSIS
       # ======================================================
       - name: SonarCloud Scan
         id: sonar-phase
