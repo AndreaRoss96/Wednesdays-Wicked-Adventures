@@ -475,7 +475,6 @@ jobs:
         if: always()
         with:
           name: trivy-reports
-          artifact: trivy-vulnerability-scan
           path: trivy-reports/
           retention-days: 7
 
