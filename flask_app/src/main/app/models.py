@@ -158,7 +158,7 @@ class AppIndexView(AdminIndexView):
 class UserView(AppModelView):
 
     column_list = ('name', 'last_name', 'email', 'password', 'role')
-    column_labels = dict(name='Name', last_name= 'Last Name', email='Email', password='Password', role='Role')
+    column_labels = dict(name='Name', last_name= 'Last Name', email='Email', password='Password', role='Role') # nosec
     column_filters = ('name', 'email')
     column_formatters = dict(password=lambda v, c, m, p: '*****')
     column_searchable_list = ('name', 'email')

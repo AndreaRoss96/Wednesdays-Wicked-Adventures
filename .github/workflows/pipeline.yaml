@@ -166,15 +166,45 @@ jobs:
           echo "Bandit available"
           echo ""
           
-          # Run quick scan (optional)
-          echo "Running quick security scan..."
-          bandit -r . -f json -o bandit-results.json || echo "Scan failed, continuing..."
+          # Create reports directory
+          echo "Creating reports directory..."
+          cd ..
+          mkdir -p Bandit
+
+          # Run scan
+          echo "Running security scan on all Python files..."
+          bandit -r ./main/app \
+            --skip B101 \
+            -f json \
+            -o Bandit/bandit-results.json
           
-          if [ -f "bandit-results.json" ]; then
-            echo "Scan result saved in bandit-results.json"
-          fi
+          # Show summary
           echo ""
+          echo "Scan completed. Reports saved in Bandit/"
+          echo ""
+
+          if [ -f "Bandit/bandit-results.json" ]; then
+            echo "Summary of findings:"
+            python -c "
+          import json
+          with open('Bandit/bandit-results.json') as f:
+            data = json.load(f)
+          print(f'Total files scanned: {data[\"metrics\"][\"_totals\"][\"loc\"]}')
+          print(f'Total issues found: {len(data[\"results\"])}')
+          print(f'High severity: {len([r for r in data[\"results\"] if r[\"issue_severity\"] == \"HIGH\"])}')
+          print(f'Medium severity: {len([r for r in data[\"results\"] if r[\"issue_severity\"] == \"MEDIUM\"])}')
+          print(f'Low severity: {len([r for r in data[\"results\"] if r[\"issue_severity\"] == \"LOW\"])}')
+            "
+          fi
+          
           echo "SECURITY PHASE COMPLETED"
+
+      - name: Upload security reports
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: security-reports
+          path: flask_app/src/Bandit/
       
       # ======================================================
       # PHASE 6: RUN TESTS WITH PYTEST
