@@ -176,7 +176,7 @@ jobs:
           bandit -r ./main/app \
             --skip B101 \
             -f json \
-            -o Bandit/Bandit-results.json
+            -o Bandit/bandit-results.json
           
           # Show summary
           echo ""
