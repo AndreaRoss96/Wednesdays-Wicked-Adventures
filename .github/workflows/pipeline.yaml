@@ -369,7 +369,118 @@ jobs:
           echo "DOCKER BUILD COMPLETED SUCCESSFULLY"
       
       # ======================================================
-      # PHASE 2: TEST DOCKER CONTAINER
+      # PHASE 2: TRIVY VULNERABILITY SCAN
+      # ======================================================
+      - name: Trivy Vulnerability Scan
+        id: trivy-phase
+        run: |
+          echo "PHASE 2: TRIVY VULNERABILITY SCAN"
+          echo "=================================="
+          echo ""
+          
+          # install Trivy
+          echo "Installing Trivy..."
+          sudo apt-get update -y
+          sudo apt-get install -y wget apt-transport-https gnupg lsb-release
+          wget -qO - https://aquasecurity.github.io/trivy-repo/deb/public.key | sudo apt-key add -
+          echo "deb https://aquasecurity.github.io/trivy-repo/deb $(lsb_release -sc) main" | sudo tee /etc/apt/sources.list.d/trivy.list
+          sudo apt-get update -y
+          sudo apt-get install -y trivy
+          echo "Trivy installed successfully"
+          echo ""
+          
+          # check Trivy installation
+          echo "Trivy version:"
+          trivy --version
+          echo ""
+          
+          # create directory for report
+          mkdir -p trivy-reports
+          echo "Reports directory created: $(pwd)/trivy-reports"
+          echo ""
+          
+          # run Trivy scan - Table format 
+          echo "Running Trivy vulnerability scan (Table format)..."
+          trivy image \
+            --severity HIGH,CRITICAL \
+            --format table \
+            --output trivy-reports/trivy-report.txt \
+            wicked-adventures:latest
+          echo ""
+          
+          # run Trivy scan - JSON format 
+          echo "Running Trivy vulnerability scan (JSON format)..."
+          trivy image \
+            --severity HIGH,CRITICAL \
+            --format json \
+            --output trivy-reports/trivy-report.json \
+            wicked-adventures:latest
+          echo ""
+          
+          # Display scan results
+          echo "Trivy scan complete!"
+          echo ""
+          echo "=========================================="
+          echo "SCAN RESULTS SUMMARY"
+          echo "=========================================="
+          cat trivy-reports/trivy-report.txt
+          echo ""
+          
+          # Parse JSON and show counts
+          if [ -f "trivy-reports/trivy-report.json" ]; then
+            echo "Vulnerability counts:"
+            python3 << 'PYEOF'
+          import json
+          
+          with open('trivy-reports/trivy-report.json', 'r') as f:
+              data = json.load(f)
+          
+          critical_count = 0
+          high_count = 0
+          
+          if 'Results' in data:
+              for result in data['Results']:
+                  if 'Vulnerabilities' in result:
+                      for vuln in result['Vulnerabilities']:
+                          severity = vuln.get('Severity', '')
+                          if severity == 'CRITICAL':
+                              critical_count += 1
+                          elif severity == 'HIGH':
+                              high_count += 1
+          
+          print(f"CRITICAL: {critical_count}")
+          print(f"HIGH:     {high_count}")
+          print(f"TOTAL:    {critical_count + high_count}")
+          
+          if critical_count > 0:
+              print("")
+              print(f"WARNING: {critical_count} CRITICAL vulnerabilities found!")
+          if high_count > 0:
+              print(f"WARNING: {high_count} HIGH vulnerabilities found!")
+          
+          if critical_count == 0 and high_count == 0:
+              print("")
+              print("No HIGH or CRITICAL vulnerabilities found!")
+          PYEOF
+          fi
+          
+          echo ""
+          echo "TRIVY SCAN COMPLETED"
+      
+      # ======================================================
+      # PHASE 3: UPLOAD TRIVY REPORTS
+      # ======================================================
+      - name: Upload Trivy Reports
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: trivy-reports
+          path: trivy-reports/
+          retention-days: 7
+
+      
+      # ======================================================
+      # PHASE 4: TEST DOCKER CONTAINER
       # ======================================================
       - name: Test Docker Container
         id: test-phase
@@ -427,7 +538,7 @@ jobs:
           fi
           echo ""
           
-          # Get container stats
+          # get container stats
           echo "Container resource usage:"
           docker stats test-wicked --no-stream --format "table {{.Container}}\t{{.CPUPerc}}\t{{.MemUsage}}"
           echo ""
@@ -435,7 +546,7 @@ jobs:
           echo "DOCKER CONTAINER TESTING COMPLETED"
 
       # ======================================================
-      # PHASE 3: DAST SECURITY SCAN WITH NUCLEI
+      # PHASE 5: DAST SECURITY SCAN WITH NUCLEI
       # ======================================================
       - name: DAST Security Scan (Nuclei)
         id: dast-phase
@@ -594,7 +705,7 @@ jobs:
               echo "DAST SCAN COMPLETED"
 
       # ======================================================
-      # PHASE 4: UPLOAD DAST REPORTS
+      # PHASE 6: UPLOAD DAST REPORTS
       # ======================================================
       - name: Upload DAST Reports
         uses: actions/upload-artifact@v4
@@ -605,7 +716,7 @@ jobs:
           retention-days: 7
 
       # ======================================================
-      # PHASE 5: CLEANUP
+      # PHASE 7: CLEANUP
       # ======================================================
       - name: Cleanup Docker Container
         if: always()
@@ -631,7 +742,7 @@ jobs:
           echo "CLEANUP COMPLETED"
       
       # ======================================================
-      # PHASE 6: DOCKER JOB SUMMARY
+      # PHASE 8: DOCKER JOB SUMMARY
       # ======================================================
       - name: Docker Job Summary
         if: always()
@@ -642,6 +753,7 @@ jobs:
           echo "Results:"
           echo "--------"
           echo "Docker Build.........: ${{ steps.build-phase.conclusion || 'unknown' }}"
+          echo "Trivy Scan...........: ${{ steps.trivy-phase.conclusion || 'unknown' }}"
           echo "Container Test.......: ${{ steps.test-phase.conclusion || 'unknown' }}"
           echo "DAST Security Scan...: ${{ steps.dast-phase.conclusion || 'unknown' }}"
           echo ""
@@ -651,7 +763,9 @@ jobs:
           if [ "${{ job.status }}" = "success" ]; then
             echo "DOCKER JOB COMPLETED SUCCESSFULLY!"
             echo "Docker image built"
+            echo "Trivy scan completed"
             echo "Container tested with secrets"
+            echo "DAST scan completed"
             echo "Ready for deployment"
           else
             echo "Docker job failed"
