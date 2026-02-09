@@ -1,0 +1,540 @@
+# ============================================================
+# CD PIPELINE (Continuous Deployment)
+# ============================================================
+name: CD Pipeline
+
+on:
+  workflow_run:
+    workflows: ["CI Pipeline"]
+    types:
+      - completed
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  # ============================================================
+  # JOB 1: DOCKER BUILD AND TEST
+  # ============================================================
+  docker-build:
+    name: Docker Build & Test
+    runs-on: ubuntu-latest
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+    timeout-minutes: 15
+    env:
+      SECRET_KEY: ${{ secrets.SECRET_KEY }}
+      SEED_ADMIN_PASSWORD: ${{ secrets.SEED_ADMIN_PASSWORD }}
+      FLASK_ENV: development
+    
+    steps:
+      # ======================================================
+      # STEP 1: CHECKOUT CODE
+      # ======================================================
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.workflow_run.head_sha }}
+      
+      # ======================================================
+      # PHASE 1: BUILD DOCKER IMAGE
+      # ======================================================
+      - name: Build Docker Image
+        id: build-phase
+        run: |
+          echo "PHASE 1: BUILD DOCKER IMAGE"
+          echo "============================"
+          echo ""
+          
+          # Go to the directory with Dockerfile
+          cd flask_app/src
+          echo "Current directory: $(pwd)"
+          echo ""
+          
+          # Verify required files exist
+          echo "Verifying build files..."
+          if [ ! -f "Dockerfile" ]; then
+            echo "ERROR: Dockerfile not found!"
+            exit 1
+          fi
+          if [ ! -f "setup.py" ]; then
+            echo "ERROR: setup.py not found!"
+            exit 1
+          fi
+          if [ ! -f "MANIFEST.in" ]; then
+            echo "ERROR: MANIFEST.in not found!"
+            exit 1
+          fi
+          if [ ! -f "requirements.txt" ]; then
+            echo "ERROR: requirements.txt not found!"
+            exit 1
+          fi
+          echo "All required files are present!"
+          echo ""
+          
+          # Build Docker Image
+          echo "Building Docker image..."
+          docker build -t wicked-adventures:latest .
+          echo "Docker image built successfully"
+          echo ""
+          
+          # Verify the image was created
+          echo "Verifying Docker image..."
+          docker images | grep wicked-adventures
+          echo ""
+          
+          # Get image details
+          echo "Image details:"
+          docker images wicked-adventures:latest --format "table {{.Repository}}\t{{.Tag}}\t{{.Size}}\t{{.CreatedAt}}"
+          echo ""
+          
+          # Test the image - basic import test
+          echo "Testing basic import..."
+          docker run --rm wicked-adventures:latest python -c "import app; print('App imports successfully')"
+          echo ""
+          
+          echo "DOCKER BUILD COMPLETED SUCCESSFULLY"
+      
+      # ======================================================
+      # PHASE 2: TRIVY VULNERABILITY SCAN
+      # ======================================================
+      - name: Trivy Vulnerability Scan
+        id: trivy-phase
+        run: |
+          echo "PHASE 2: TRIVY VULNERABILITY SCAN"
+          echo "=================================="
+          echo ""
+          
+          # install Trivy
+          echo "Installing Trivy..."
+          sudo apt-get update -y
+          sudo apt-get install -y wget apt-transport-https gnupg lsb-release
+          wget -qO - https://aquasecurity.github.io/trivy-repo/deb/public.key | sudo apt-key add -
+          echo "deb https://aquasecurity.github.io/trivy-repo/deb $(lsb_release -sc) main" | sudo tee /etc/apt/sources.list.d/trivy.list
+          sudo apt-get update -y
+          sudo apt-get install -y trivy
+          echo "Trivy installed successfully"
+          echo ""
+          
+          # check Trivy installation
+          echo "Trivy version:"
+          trivy --version
+          echo ""
+          
+          # create directory for report
+          mkdir -p trivy-reports
+          echo "Reports directory created: $(pwd)/trivy-reports"
+          echo ""
+          
+          # run Trivy scan - Table format 
+          echo "Running Trivy vulnerability scan (Table format)..."
+          trivy image \
+            --severity HIGH,CRITICAL \
+            --format table \
+            --output trivy-reports/trivy-report.txt \
+            wicked-adventures:latest
+          echo ""
+          
+          # run Trivy scan - JSON format 
+          echo "Running Trivy vulnerability scan (JSON format)..."
+          trivy image \
+            --severity HIGH,CRITICAL \
+            --format json \
+            --output trivy-reports/trivy-report.json \
+            wicked-adventures:latest
+          echo ""
+          
+          # Display scan results
+          echo "Trivy scan complete!"
+          echo ""
+          echo "=========================================="
+          echo "SCAN RESULTS SUMMARY"
+          echo "=========================================="
+          cat trivy-reports/trivy-report.txt
+          echo ""
+          
+          # Parse JSON and show counts
+          if [ -f "trivy-reports/trivy-report.json" ]; then
+            echo "Vulnerability counts:"
+            python3 << 'PYEOF'
+          import json
+          
+          with open('trivy-reports/trivy-report.json', 'r') as f:
+              data = json.load(f)
+          
+          critical_count = 0
+          high_count = 0
+          
+          if 'Results' in data:
+              for result in data['Results']:
+                  if 'Vulnerabilities' in result:
+                      for vuln in result['Vulnerabilities']:
+                          severity = vuln.get('Severity', '')
+                          if severity == 'CRITICAL':
+                              critical_count += 1
+                          elif severity == 'HIGH':
+                              high_count += 1
+          
+          print(f"CRITICAL: {critical_count}")
+          print(f"HIGH:     {high_count}")
+          print(f"TOTAL:    {critical_count + high_count}")
+          
+          if critical_count > 0:
+              print("")
+              print(f"WARNING: {critical_count} CRITICAL vulnerabilities found!")
+          if high_count > 0:
+              print(f"WARNING: {high_count} HIGH vulnerabilities found!")
+          
+          if critical_count == 0 and high_count == 0:
+              print("")
+              print("No HIGH or CRITICAL vulnerabilities found!")
+          PYEOF
+          fi
+          
+          echo ""
+          echo "TRIVY SCAN COMPLETED"
+      
+      # ======================================================
+      # PHASE 3: UPLOAD TRIVY REPORTS
+      # ======================================================
+      - name: Upload Trivy Reports
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: trivy-reports
+          path: trivy-reports/
+          retention-days: 7
+      
+      # ======================================================
+      # PHASE 4: TEST DOCKER CONTAINER
+      # ======================================================
+      - name: Test Docker Container
+        id: test-phase
+        run: |
+          echo "PHASE 4: TEST DOCKER CONTAINER"
+          echo "==============================="
+          echo ""
+          
+          # Run container with environment variables from secrets
+          echo "Starting Docker container with environment variables..."
+          docker run -d \
+            --name test-wicked \
+            -p 5000:5000 \
+            -e SECRET_KEY="${{ secrets.SECRET_KEY }}" \
+            -e SEED_ADMIN_PASSWORD="${{ secrets.SEED_ADMIN_PASSWORD }}" \
+            -e FLASK_ENV="${{ env.FLASK_ENV }}" \
+            wicked-adventures:latest
+          
+          echo "Container started"
+          echo "Container ID: $(docker ps -q -f name=test-wicked)"
+          echo ""
+
+          echo "wait for Flask to start..."
+          sleep 15  
+          echo ""
+          
+          # check container status
+          echo "Container status:"
+          docker ps | grep test-wicked
+          echo ""
+          
+          # check container logs
+          echo "Container logs:"
+          docker logs test-wicked --tail 20
+          echo ""
+          
+          # verify container is running
+          if [ "$(docker ps -q -f name=test-wicked)" ]; then
+            echo "Container is running"
+          else
+            echo "Container is not running!"
+            docker logs test-wicked
+            exit 1
+          fi
+          echo ""
+          
+          # test health endpoint 
+          echo "Testing container response..."
+          if curl -f http://localhost:5000/ --max-time 10 2>/dev/null; then
+            echo "Container is responding to HTTP requests"
+          else
+            echo "Container is not responding on root endpoint"
+            echo "Checking if Flask is running..."
+            docker exec test-wicked ps aux | grep flask || echo "Flask process check"
+          fi
+          echo ""
+          
+          # get container stats
+          echo "Container resource usage:"
+          docker stats test-wicked --no-stream --format "table {{.Container}}\t{{.CPUPerc}}\t{{.MemUsage}}"
+          echo ""
+          
+          echo "DOCKER CONTAINER TESTING COMPLETED"
+
+      # ======================================================
+      # PHASE 5: DAST SECURITY SCAN WITH NUCLEI
+      # ======================================================
+      - name: DAST Security Scan (Nuclei)
+        id: dast-phase
+        run: |
+          #!/usr/bin/env bash
+          echo "PHASE 5: DAST SECURITY SCAN"
+          echo "=============================="
+          echo ""
+              
+          # Create reports directory
+          echo "Creating DAST reports directory..."
+          mkdir -p dast-reports
+          echo "Reports will be saved in: $(pwd)/dast-reports"
+          echo ""            
+          # URL Target
+          TARGET_URL="http://localhost:5000"
+          echo "Target URL: $TARGET_URL"
+          echo ""
+              
+          # Verify application is responding before scanning
+          echo "Checking application response..."
+          RESPONSE_CODE=$(curl -s -o /dev/null -w "%{http_code}" "$TARGET_URL" --max-time 10 || echo "000")
+          echo "HTTP Response Code: $RESPONSE_CODE"
+              
+          if [ "$RESPONSE_CODE" != "200" ]; then
+            echo "Warning: Application returned code $RESPONSE_CODE"
+            echo "Continuing scan anyway..."
+          fi
+          echo ""
+              
+          # Pull Nuclei Docker image
+          echo "Pulling Nuclei Docker image..."
+          docker pull projectdiscovery/nuclei:latest
+          echo ""
+              
+          # SCAN 1: Verify critical vulnerabilities
+          echo "1. Quick Critical Scan (timeout: 90s)"
+          echo "-------------------------------------"
+          docker run --rm \
+            -v $(pwd)/dast-reports:/reports \
+            projectdiscovery/nuclei:latest \
+            -u "$TARGET_URL" \
+            -t http/security-misconfiguration/ \
+            -t http/missing-headers/ \
+              -severity critical \
+            -timeout 90 \
+            -json -o /reports/critical-scan.json \
+            -silent || true
+              
+          # SCAN 2: Security Headers Scan (important for web apps)
+          echo ""
+          echo "2. Security Headers Scan"
+          echo "-------------------------"
+          docker run --rm \
+            -v $(pwd)/dast-reports:/reports \
+            projectdiscovery/nuclei:latest \
+            -u "$TARGET_URL" \
+            -t http/missing-headers/ \
+            -severity medium,high \
+            -timeout 60 \
+            -json -o /reports/headers-scan.json \
+            -silent || true
+              
+          # SCAN 3: (admin, debug, etc)
+          echo ""
+          echo "3. Exposed Panels Scan"
+          echo "----------------------"
+          docker run --rm \
+            -v $(pwd)/dast-reports:/reports \
+            projectdiscovery/nuclei:latest \
+            -u "$TARGET_URL" \
+            -t http/exposed-panels/ \
+            -severity medium,high,critical \
+            -timeout 60 \
+            -json -o /reports/panels-scan.json \
+            -silent || true
+              
+          # Results report
+          echo ""
+          echo "Generating consolidated report..."
+          echo "================================="
+          cat > dast-reports/summary.txt << EOF
+          
+          ========================================
+          DAST SECURITY SCAN SUMMARY
+          ========================================
+          Target: $TARGET_URL
+          Timestamp: $(date)
+          Scan duration: ~3 minutes
+          ========================================
+          EOF
+              
+          # Analising results and counting by severity
+              CRITICAL_COUNT=0
+              HIGH_COUNT=0
+              MEDIUM_COUNT=0
+              LOW_COUNT=0
+              
+              for scan_file in critical-scan.json headers-scan.json panels-scan.json; do
+                if [ -f "dast-reports/$scan_file" ] && [ -s "dast-reports/$scan_file" ]; then
+                  echo "" >> dast-reports/summary.txt
+                  echo "=== $(echo $scan_file | sed 's/-/ /g' | sed 's/.json//') ===" >> dast-reports/summary.txt
+                  
+                  # Counting severities
+                  if command -v jq > /dev/null; then
+                    while IFS= read -r severity; do
+                      case $severity in
+                        critical) CRITICAL_COUNT=$((CRITICAL_COUNT + 1)) ;;
+                        high) HIGH_COUNT=$((HIGH_COUNT + 1)) ;;
+                        medium) MEDIUM_COUNT=$((MEDIUM_COUNT + 1)) ;;
+                        low) LOW_COUNT=$((LOW_COUNT + 1)) ;;
+                      esac
+                    done < <(jq -r '.info.severity' "dast-reports/$scan_file" 2>/dev/null)
+                    
+                    # List findings
+                    jq -r '.[] | "\(.info.severity | ascii_upcase): \(.info.name)\n      Template: \(.template_id)\n      Matched: \(.matched)\n"' \
+                      "dast-reports/$scan_file" 2>/dev/null >> dast-reports/summary.txt || echo "No findings" >> dast-reports/summary.txt
+                  else
+                    echo "jq not available for parsing" >> dast-reports/summary.txt
+                  fi
+                fi
+              done
+              
+              # Add severity summary
+              echo "" >> dast-reports/summary.txt
+              echo "========================================" >> dast-reports/summary.txt
+              echo "SUMMARY BY SEVERITY" >> dast-reports/summary.txt
+              echo "========================================" >> dast-reports/summary.txt
+              echo "Critical: $CRITICAL_COUNT" >> dast-reports/summary.txt
+              echo "High:     $HIGH_COUNT" >> dast-reports/summary.txt
+              echo "Medium:   $MEDIUM_COUNT" >> dast-reports/summary.txt
+              echo "Low:      $LOW_COUNT" >> dast-reports/summary.txt
+              echo "========================================" >> dast-reports/summary.txt
+              
+              # Show summary in console
+              echo ""
+              tail -20 dast-reports/summary.txt
+              echo ""
+              
+              # Just warning
+              if [ "$CRITICAL_COUNT" -gt 0 ]; then
+                echo "WARNING: Found $CRITICAL_COUNT CRITICAL vulnerabilities!"
+                echo "These should be addressed immediately."
+              fi
+              
+              if [ "$HIGH_COUNT" -gt 0 ]; then
+                echo "WARNING: Found $HIGH_COUNT HIGH severity vulnerabilities"
+              fi
+              
+              if [ "$CRITICAL_COUNT" -eq 0 ] && [ "$HIGH_COUNT" -eq 0 ]; then
+                echo "No critical or high severity vulnerabilities found!"
+              fi
+              
+              echo ""
+              echo "Detailed report: dast-reports/summary.txt"
+              echo "DAST SCAN COMPLETED"
+
+      # ======================================================
+      # PHASE 6: UPLOAD DAST REPORTS
+      # ======================================================
+      - name: Upload DAST Reports
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: dast-reports
+          path: dast-reports/
+          retention-days: 7
+
+      # ======================================================
+      # PHASE 7: CLEANUP
+      # ======================================================
+      - name: Cleanup Docker Container
+        if: always()
+        run: |
+          echo "PHASE 7: CLEANUP"
+          echo "================"
+          echo ""
+          
+          # stop and remove container
+          if [ "$(docker ps -q -f name=test-wicked)" ]; then
+            echo "Stopping container..."
+            docker stop test-wicked
+            echo "Container stopped"
+          fi
+          
+          if [ "$(docker ps -aq -f name=test-wicked)" ]; then
+            echo "Removing container..."
+            docker rm test-wicked
+            echo "Container removed"
+          fi
+          echo ""
+          
+          echo "CLEANUP COMPLETED"
+      
+      # ======================================================
+      # PHASE 8: DOCKER JOB SUMMARY
+      # ======================================================
+      - name: Docker Job Summary
+        if: always()
+        run: |
+          echo "PHASE 8: DOCKER JOB SUMMARY"
+          echo "==========================="
+          echo ""
+          echo "Results:"
+          echo "--------"
+          echo "Docker Build.........: ${{ steps.build-phase.conclusion || 'unknown' }}"
+          echo "Trivy Scan...........: ${{ steps.trivy-phase.conclusion || 'unknown' }}"
+          echo "Container Test.......: ${{ steps.test-phase.conclusion || 'unknown' }}"
+          echo "DAST Security Scan...: ${{ steps.dast-phase.conclusion || 'unknown' }}"
+          echo ""
+          echo "Overall Status.......: ${{ job.status }}"
+          echo ""
+          
+          if [ "${{ job.status }}" = "success" ]; then
+            echo "DOCKER JOB COMPLETED SUCCESSFULLY!"
+            echo "Docker image built"
+            echo "Trivy scan completed"
+            echo "Container tested with secrets"
+            echo "DAST scan completed"
+            echo "Ready for deployment"
+          else
+            echo "Docker job failed"
+          fi
+          
+          echo ""
+          echo "========================================"
+          echo "DOCKER JOB EXECUTION COMPLETE"
+          echo "========================================"
+
+  # ============================================================
+  # JOB 2: BUILD DOCUMENTATION (OPCIONAL - pode ficar aqui ou em CI)
+  # ============================================================
+  build-docs:
+    name: Build Documentation
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install MkDocs
+        run: pip install mkdocs mkdocs-material pymdown-extensions
+
+      - name: Validate documentation structure
+        run: |
+          echo "Checking documentation files..."
+          test -f mkdocs.yml || (echo "mkdocs.yml not found" && exit 1)
+          test -d docs || (echo "docs directory not found" && exit 1)
+          test -f docs/index.md || (echo "docs/index.md not found" && exit 1)
+          echo "Documentation structure is valid"
+
+      - name: Build documentation
+        run: mkdocs build --strict
+
+      - name: Upload documentation artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: docs-site
+          path: site/
+          retention-days: 7

@@ -1,0 +1,337 @@
+# ============================================================
+# PIPELINE
+# ============================================================
+name: CI Pipeline 
+
+on:
+  push:
+    branches: [feature/*]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  # ============================================================
+  # JOB 1: BUILD AND TEST
+  # ============================================================
+  ci-pipeline:
+    name: CI Pipeline
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    defaults:
+      run:
+        working-directory: flask_app/src/main
+    env:
+      SECRET_KEY: ${{ secrets.SECRET_KEY }}
+      SEED_ADMIN_PASSWORD: ${{ secrets.SEED_ADMIN_PASSWORD }}
+      FLASK_ENV: development
+    
+    steps:
+      # ======================================================
+      # STEP 1: CHECKOUT CODE
+      # ======================================================
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # Shallow clones disabled for SonarCloud
+      
+      # ======================================================
+      # STEP 2: SETUP PYTHON
+      # ======================================================
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      
+      # ======================================================
+      # STEP 3: Cache 
+      # ======================================================
+      - name: Cache pip packages
+        id: cache-pip
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cache/pip
+            ${{ github.workspace }}/flask_app/src/main/venv
+          key: ${{ runner.os }}-pip-${{ hashFiles('flask_app/src/requirements.txt') }}
+      
+      # ======================================================
+      # PHASE 4: SETUP ENVIRONMENT
+      # ======================================================
+      - name: Setup Virtual Environment
+        id: setup-phase
+        run: |
+          echo "PHASE 4: SETUP ENVIRONMENT"
+          echo "============================="
+          echo ""
+
+          # Check environment variables
+          echo "Checking environment variables..."
+          echo "SECRET_KEY is set: ${{ env.SECRET_KEY != '' }}"
+          echo "SEED_ADMIN_PASSWORD is set: ${{ env.SEED_ADMIN_PASSWORD != '' }}"
+          echo ""
+          echo "Going to: flask_app/src/main"
+          cd flask_app/src/main
+          echo "Current directory: $(pwd)"
+          echo ""
+          
+          if [ ! -d "venv" ]; then
+            echo "Creating virtual environment..."
+            python3 -m venv venv
+            echo "Venv created at: $(pwd)/venv"
+          else
+            echo "Using cached virtual environment"
+          fi
+          
+          # venv
+          echo "Activating venv..."
+          source venv/bin/activate
+          echo "Python: $(which python)"
+          echo ""
+          
+          # Upgrade pip
+          echo "Upgrading pip..."
+          python -m pip install --upgrade pip
+          echo ""
+          
+          # Install requirements if cache miss
+          if [ "${{ steps.cache-pip.outputs.cache-hit }}" != 'true' ]; then
+            echo "Cache miss - installing requirements..."
+            pip install -r ../requirements.txt
+          else
+            echo "Cache hit - skipping requirements installation"
+          fi
+          echo ""
+          
+          # Install extra packages
+          echo "Checking pytest..."
+          if ! pip show pytest >/dev/null 2>&1; then
+            echo "Installing pytest..."
+            pip install pytest
+          fi
+          echo "Pytest available"
+          echo ""
+
+          # Show pytest
+          echo "Showing pytest..."
+          pip show Flask pytest | grep -E "^(Name|Version):" || true
+          echo ""
+
+          echo "SETUP COMPLETED SUCCESSFULLY"
+      
+      # ======================================================
+      # PHASE 5: CODE QUALITY - FLAKE8 LINTING
+      # ======================================================
+      - name: Code Quality - Flake8 Linting
+        id: lint-phase
+        run: |
+          echo "PHASE 5: CODE QUALITY - FLAKE8"
+          echo "================================"
+          echo ""
+
+          # Activate venv
+          source venv/bin/activate
+
+          echo "Flake8 version: $(flake8 --version)"
+          
+          echo "Running critical error checks..."
+          flake8 . \
+            --count \
+            --select=E9,F63,F7,F82 \
+            --show-source \
+            --statistics \
+            --exclude=venv,__pycache__,.git,.pytest_cache
+          
+          echo "Running extended style checks..."
+          flake8 . \
+            --count \
+            --max-complexity=10 \
+            --max-line-length=127 \
+            --statistics \
+            --exclude=venv,__pycache__,.git,.pytest_cache,*.pyc,*.egg-info \
+            --format='%(path)s:%(row)d:%(col)d: %(code)s %(text)s' || {
+              echo ""
+              echo "Style warnings found (not blocking pipeline)"
+          }
+          
+          echo "FLAKE8 LINTING COMPLETED"
+      
+      # ======================================================
+      # PHASE 6: SECURITY SCAN (SAST) - BANDIT
+      # ======================================================
+      - name: Security Scan (SAST)
+        id: security-phase
+        working-directory: ./flask_app/src
+        run: |
+          echo "PHASE 6: SECURITY SCAN"
+          echo "========================="
+          echo ""
+
+          # Activate venv
+          source main/venv/bin/activate
+          
+          # Install bandit if needed
+          echo "Checking bandit..."
+          if ! pip show bandit >/dev/null 2>&1; then
+            echo "Installing bandit..."
+            pip install bandit
+          fi
+          echo "Bandit available"
+          echo ""
+          
+          # Create reports directory
+          echo "Creating reports directory..."
+          cd ..
+          mkdir -p Bandit
+
+          # Run scan
+          echo "Running security scan on all Python files..."
+          bandit -r ./main/app \
+            --skip B101 \
+            -f json \
+            -o Bandit/bandit-results.json
+          
+          # Show summary
+          echo ""
+          echo "Scan completed. Reports saved in Bandit/"
+          echo ""
+
+          if [ -f "Bandit/bandit-results.json" ]; then
+            echo "Summary of findings:"
+            python -c "
+          import json
+          with open('Bandit/bandit-results.json') as f:
+            data = json.load(f)
+          print(f'Total files scanned: {data[\"metrics\"][\"_totals\"][\"loc\"]}')
+          print(f'Total issues found: {len(data[\"results\"])}')
+          print(f'High severity: {len([r for r in data[\"results\"] if r[\"issue_severity\"] == \"HIGH\"])}')
+          print(f'Medium severity: {len([r for r in data[\"results\"] if r[\"issue_severity\"] == \"MEDIUM\"])}')
+          print(f'Low severity: {len([r for r in data[\"results\"] if r[\"issue_severity\"] == \"LOW\"])}')
+            "
+          fi
+          
+          echo "SECURITY PHASE COMPLETED"
+
+      - name: Upload security reports
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: security-reports
+          path: flask_app/src/Bandit/
+      
+      # ======================================================
+      # PHASE 7: RUN TESTS WITH PYTEST
+      # ======================================================
+      - name: Run Tests with pytest
+        id: test-phase
+        working-directory: ./flask_app/src
+        run: |
+          echo "PHASE 7: RUN TESTS"
+          echo "====================="
+          echo ""
+
+          # Activate venv
+          source main/venv/bin/activate
+          
+          # Check test structure
+          echo "Test structure:"
+          find . -name "*test*.py" -type f | head -10 || echo "No tests found"
+          echo ""
+          
+          echo "Running pytest..."
+          cd "${{ github.workspace }}/flask_app/src"
+          python -m pytest --cov=app --cov-report=xml --cov-report=term-missing
+          
+          echo ""
+          echo "TESTS EXECUTED SUCCESSFULLY"
+
+      # ======================================================
+      # PHASE 8: SONARCLOUD ANALYSIS
+      # ======================================================
+      - name: SonarCloud Scan
+        id: sonar-phase
+        uses: SonarSource/sonarqube-scan-action@v5.0.0
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+        with:
+          projectBaseDir: flask_app/src
+          args: >
+            -Dsonar.projectKey=AndreaRoss96_Wednesdays-Wicked-Adventures
+            -Dsonar.organization=andreaross96
+            -Dsonar.verbose=true
+            -Dsonar.qualitygate.wait=false
+            -Dsonar.scm.disabled=true
+      
+      # ======================================================
+      # PHASE 9: PIPELINE SUMMARY
+      # ======================================================
+      - name: Pipeline Summary
+        if: always()
+        run: |
+          echo "PHASE 9: PIPELINE SUMMARY"
+          echo "============================"
+          echo ""
+          echo "Results:"
+          echo "--------"
+          echo "Setup Environment....: ${{ steps.setup-phase.conclusion || 'unknown' }}"
+          echo "Flake8 Linting.......: ${{ steps.lint-phase.conclusion || 'unknown' }}"
+          echo "Security Scan........: ${{ steps.security-phase.conclusion || 'unknown' }}"
+          echo "Test Execution.......: ${{ steps.test-phase.conclusion || 'unknown' }}"
+          echo ""
+          echo "Overall Status.......: ${{ job.status }}"
+          echo ""
+
+          if [ "${{ job.status }}" = "success" ]; then
+            echo "PIPELINE COMPLETED SUCCESSFULLY!"
+            echo "Environment configured correctly"
+            echo "Tests executed"
+            echo "Build completed"
+            echo "Ready for next steps"
+          else
+            echo "Some phases failed"
+            echo "Check logs for details"
+          fi
+
+          echo ""
+          echo "========================================"
+          echo "PIPELINE EXECUTION COMPLETE"
+          echo "========================================"
+
+  # ============================================================
+  # DOCUMENTATION BUILD JOB
+  # ============================================================
+  build-docs:
+    name: Build Documentation
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install MkDocs
+        run: pip install mkdocs mkdocs-material pymdown-extensions
+
+      - name: Validate documentation structure
+        run: |
+          echo "Checking documentation files..."
+          test -f mkdocs.yml || (echo "mkdocs.yml not found" && exit 1)
+          test -d docs || (echo "docs directory not found" && exit 1)
+          test -f docs/index.md || (echo "docs/index.md not found" && exit 1)
+          echo "Documentation structure is valid"
+
+      - name: Build documentation
+        run: mkdocs build --strict
+
+      - name: Upload documentation artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: docs-site
+          path: site/
+          retention-days: 7
