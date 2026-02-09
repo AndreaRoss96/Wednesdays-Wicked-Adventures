@@ -52,8 +52,6 @@ jobs:
           echo "PHASE 3: SETUP ENVIRONMENT"
           echo "============================="
           echo ""
-
-          # Check environment variables
           echo "Checking environment variables..."
           echo "SECRET_KEY is set: ${{ env.SECRET_KEY != '' }}"
           echo "SEED_ADMIN_PASSWORD is set: ${{ env.SEED_ADMIN_PASSWORD != '' }}"
