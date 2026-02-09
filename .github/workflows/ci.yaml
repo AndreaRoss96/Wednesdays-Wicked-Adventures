@@ -44,24 +44,12 @@ jobs:
           python-version: "3.11"
       
       # ======================================================
-      # STEP 3: Cache 
-      # ======================================================
-      - name: Cache pip packages
-        id: cache-pip
-        uses: actions/cache@v4
-        with:
-          path: |
-            ~/.cache/pip
-            ${{ github.workspace }}/flask_app/src/main/venv
-          key: ${{ runner.os }}-pip-${{ hashFiles('flask_app/src/requirements.txt') }}
-      
-      # ======================================================
-      # PHASE 4: SETUP ENVIRONMENT
+      # PHASE 3: SETUP ENVIRONMENT
       # ======================================================
       - name: Setup Virtual Environment
         id: setup-phase
         run: |
-          echo "PHASE 4: SETUP ENVIRONMENT"
+          echo "PHASE 3: SETUP ENVIRONMENT"
           echo "============================="
           echo ""
 
@@ -116,6 +104,19 @@ jobs:
           echo ""
           
           echo "SETUP COMPLETED SUCCESSFULLY"
+
+      # ======================================================
+      # STEP 4: Cache 
+      # ======================================================
+      - name: Cache pip packages
+        id: cache-pip
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cache/pip
+            ${{ github.workspace }}/flask_app/src/main/venv
+          key: ${{ runner.os }}-pip-${{ hashFiles('flask_app/src/requirements.txt') }}
+      
       
       # ======================================================
       # PHASE 5: CODE QUALITY - FLAKE8 LINTING
