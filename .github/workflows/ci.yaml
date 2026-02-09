@@ -75,35 +75,33 @@ jobs:
           echo "Current directory: $(pwd)"
           echo ""
           
-          if [ ! -d "venv" ]; then
-            echo "Creating virtual environment..."
-            python3 -m venv venv
-            echo "Venv created at: $(pwd)/venv"
-          else
-            echo "Using cached virtual environment"
-          fi
-          
-          # venv
-          echo "Activating venv..."
-          source venv/bin/activate
-          echo "Python: $(which python)"
+          # Create venv 
+          echo "Creating virtual environment..."
+          python3 -m venv venv
+          echo "Venv created at: $(pwd)/venv"
           echo ""
           
-          # Upgrade pip
+          # Activate venv
+          echo "Activating venv..."
+          source venv/bin/activate
+          echo "Venv activated"
+          echo "Python: $(which python)"
+          echo "Version: $(python --version)"
+          echo ""
+          
+          # Update pip
           echo "Upgrading pip..."
           python -m pip install --upgrade pip
           echo ""
           
-          # Install requirements if cache miss
-          if [ "${{ steps.cache-pip.outputs.cache-hit }}" != 'true' ]; then
-            echo "Cache miss - installing requirements..."
-            pip install -r ../requirements.txt
-          else
-            echo "Cache hit - skipping requirements installation"
-          fi
+          # Install requirements 
+          echo "Installing requirements.txt..."
+          echo "From: ../requirements.txt"
+          pip install -r ../requirements.txt
+          echo "Requirements installed"
           echo ""
           
-          # Install extra packages
+          # Install extra packages 
           echo "Checking pytest..."
           if ! pip show pytest >/dev/null 2>&1; then
             echo "Installing pytest..."
@@ -111,12 +109,12 @@ jobs:
           fi
           echo "Pytest available"
           echo ""
-
+          
           # Show pytest
           echo "Showing pytest..."
           pip show Flask pytest | grep -E "^(Name|Version):" || true
           echo ""
-
+          
           echo "SETUP COMPLETED SUCCESSFULLY"
       
       # ======================================================
