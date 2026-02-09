@@ -57,7 +57,7 @@ jobs:
           echo "SEED_ADMIN_PASSWORD is set: ${{ env.SEED_ADMIN_PASSWORD != '' }}"
           echo ""
           echo "Going to: flask_app/src/main"
-          cd flask_app/src/main
+          cd "${{ github.workspace }}/flask_app/src/main"
           echo "Current directory: $(pwd)"
           echo ""
           
