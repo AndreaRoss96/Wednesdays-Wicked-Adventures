@@ -205,14 +205,58 @@ jobs:
         with:
           name: security-reports
           path: flask_app/src/Bandit/
+
+
+      # ======================================================
+      # PHASE 6: RUN SMOKE TESTS (NEW)
+      # ======================================================
+      - name: Run Smoke Tests
+        id: smoke-phase
+        run: |
+          echo "PHASE 6: RUN SMOKE TESTS"
+          echo "=========================="
+          echo ""
+          
+          # Activate venv and go to project
+          echo "Activating venv..."
+          cd flask_app/src/main
+          source venv/bin/activate
+          echo "Directory: $(pwd)"
+          echo "Python: $(which python)"
+          echo ""
+          
+          # Navigate to src directory for pytest
+          cd "${{ github.workspace }}/flask_app/src"
+          echo "Running from: $(pwd)"
+          echo ""
+          
+          # Verify test structure
+          echo "Checking smoke test structure..."
+          if [ -d "tests/smoke" ] && [ -f "tests/smoke/test_smoke.py" ]; then
+            echo "✓ Smoke tests found"
+          else
+            echo "⚠ Warning: tests/smoke/test_smoke.py not found"
+          fi
+          echo ""
+          
+          # Run smoke tests
+          echo "Running smoke tests..."
+          python -m pytest tests/smoke/ \
+            -v \
+            --tb=short \
+            --color=yes
+          
+          echo ""
+          echo "SMOKE TESTS COMPLETED SUCCESSFULLY"
+
       
       # ======================================================
-      # PHASE 6: RUN TESTS WITH PYTEST
+      # PHASE 7: RUN TESTS WITH PYTEST
       # ======================================================
       - name: Run Tests with pytest
         id: test-phase
         run: |
-          echo "PHASE 6: RUN TESTS"
+          echo "PHASE 7: RUN TESTS"
           echo "====================="
           echo ""
           
@@ -237,7 +281,7 @@ jobs:
           echo "TESTS EXECUTED SUCCESSFULLY"
 
       # ======================================================
-      # PHASE 7: SONARCLOUD ANALYSIS
+      # PHASE 8: SONARCLOUD ANALYSIS
       # ======================================================
       - name: SonarCloud Scan
         id: sonar-phase
@@ -255,12 +299,12 @@ jobs:
             -Dsonar.scm.disabled=true
       
       # ======================================================
-      # PHASE 8: PIPELINE SUMMARY
+      # PHASE 9: PIPELINE SUMMARY
       # ======================================================
       - name: Pipeline Summary
         if: always()
         run: |
-          echo "PHASE 8: PIPELINE SUMMARY"
+          echo "PHASE 9: PIPELINE SUMMARY"
           echo "============================"
           echo ""
           echo "Results:"
