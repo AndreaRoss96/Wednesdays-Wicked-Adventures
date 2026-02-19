@@ -204,42 +204,81 @@ class BookingView(AppModelView):
         health_safety=dict(validators=[DataRequired()])
     )
 
+# class ParkView(AppModelView):
+  
+#     column_list = ('name', 'location', 'description', 'image_path', 'short_description', 'slug', 'folder', 'hours','min_age', 'price','wait_time', 'height_requirement')
+#     column_labels = dict(name='Name', location='Location', description='Description', image_path='Image Path', short_description='Short Description', slug='Slug', folder='Folder', hours='Hours', min_age='Min Age', price='Price', wait_time='Wait Time', height_requirement='Height Requirement')
+#     column_filters = ('name', 'location')
+#     column_formatters = dict(description=lambda v, c, m, p: m.description[:50] + '...')
+#     column_searchable_list = ('name', 'location')
+#     column_sortable_list = ()
+#     form_columns = ('name', 'location', 'description', 'image_path', 'short_description', 'slug', 'folder', 'hours','min_age', 'price','wait_time', 'height_requirement')
+#     form_args = dict(
+#         name=dict(validators=[DataRequired()]),
+#         location=dict(validators=[DataRequired()]),
+#         description=dict(validators=[DataRequired()]),
+#         image_path=dict(validators=[DataRequired()]),
+#         short_description=dict(validators=[DataRequired()]),
+#         slug=dict(validators=[DataRequired()]),
+#         folder=dict(validators=[DataRequired()]),
+#         hours=dict(validators=[DataRequired()]),
+#         min_age=dict(validators=[DataRequired()]),
+#         price=dict(validators=[DataRequired()]),
+#         wait_time=dict(validators=[DataRequired()]),
+#         height_requirement=dict(validators=[DataRequired()]),
+#     )
+
 class ParkView(AppModelView):
   
-    column_list = ('name', 'location', 'description', 'image_path', 'short_description', 'slug', 'folder', 'hours','min_age', 'price','wait_time', 'height_requirement')
-    column_labels = dict(name='Name', location='Location', description='Description', image_path='Image Path', short_description='Short Description', slug='Slug', folder='Folder', hours='Hours', min_age='Min Age', price='Price', wait_time='Wait Time', height_requirement='Height Requirement')
+    column_list = ('name', 'location', 'description', 'image_path', 'short_description', 'slug', 'folder', 'hours', 'min_age', 'price', 'wait_time', 'height_requirement')
+    column_labels = {
+        'name': 'Name',
+        'location': 'Location',
+        'description': 'Description',
+        'image_path': 'Image Path',
+        'short_description': 'Short Description',
+        'slug': 'Slug',
+        'folder': 'Folder',
+        'hours': 'Hours',
+        'min_age': 'Min Age',
+        'price': 'Price',
+        'wait_time': 'Wait Time',
+        'height_requirement': 'Height Requirement'
+    }
     column_filters = ('name', 'location')
-    column_formatters = dict(description=lambda v, c, m, p: m.description[:50] + '...')
+    column_formatters = {
+        'description': lambda v, c, m, p: m.description[:50] + '...'
+    }
     column_searchable_list = ('name', 'location')
     column_sortable_list = ()
-    form_columns = ('name', 'location', 'description', 'image_path', 'short_description', 'slug', 'folder', 'hours','min_age', 'price','wait_time', 'height_requirement')
-    form_args = dict(
-        name=dict(validators=[DataRequired()]),
-        location=dict(validators=[DataRequired()]),
-        description=dict(validators=[DataRequired()]),
-        image_path=dict(validators=[DataRequired()]),
-        short_description=dict(validators=[DataRequired()]),
-        slug=dict(validators=[DataRequired()]),
-        folder=dict(validators=[DataRequired()]),
-        hours=dict(validators=[DataRequired()]),
-        min_age=dict(validators=[DataRequired()]),
-        price=dict(validators=[DataRequired()]),
-        wait_time=dict(validators=[DataRequired()]),
-        height_requirement=dict(validators=[DataRequired()]),
-    )
+    form_columns = ('name', 'location', 'description', 'image_path', 'short_description', 'slug', 'folder', 'hours', 'min_age', 'price', 'wait_time', 'height_requirement')
+    form_args = {
+        'name': {'validators': [DataRequired()]},
+        'location': {'validators': [DataRequired()]},
+        'description': {'validators': [DataRequired()]},
+        'image_path': {'validators': [DataRequired()]},
+        'short_description': {'validators': [DataRequired()]},
+        'slug': {'validators': [DataRequired()]},
+        'folder': {'validators': [DataRequired()]},
+        'hours': {'validators': [DataRequired()]},
+        'min_age': {'validators': [DataRequired()]},
+        'price': {'validators': [DataRequired()]},
+        'wait_time': {'validators': [DataRequired()]},
+        'height_requirement': {'validators': [DataRequired()]}
+    }
 
 class MessageView(AppModelView):
    
     column_list = ('name', 'email', 'message', 'created_at')
-    column_labels = dict(name='Name', email='Email', message='Message', created_at='Create Date')
+    column_labels = {'name': 'Name', 'email': 'Email', 'message': 'Message', 'created_at': 'Create Date'}
     column_filters = ('email',)
     column_searchable_list = ('name', 'email', 'message')
     column_sortable_list = ()
     column_default_sort = ('created_at', True)
     form_columns = ('name', 'email', 'message', 'created_at')
-    form_args = dict(
-        name=dict(validators=[DataRequired()]),
-        email=dict(validators=[DataRequired()]),
-        message=dict(validators=[DataRequired()])
-    )
+    form_args = {
+        'name': {'validators': [DataRequired()]},
+        'email': {'validators': [DataRequired()]},
+        'message': {'validators': [DataRequired()]}
+    }
 
