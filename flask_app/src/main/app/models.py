@@ -157,24 +157,31 @@ class AppIndexView(AdminIndexView):
 
 class UserView(AppModelView):
 
-    column_list = ('name', 'last_name', 'email', 'password', 'role')
-    column_labels = dict(name='Name', last_name= 'Last Name', email='Email', password='Password', role='Role') # nosec
+    column_list = ('name', 'last_name', 'email', 'password', 'role') 
+    column_labels = {
+        'name': 'Name',
+        'last_name': 'Last Name',
+        'email': 'Email',
+        'password': 'Password',
+        'role': 'Role'
+    }  # nosec  
     column_filters = ('name', 'email')
-    column_formatters = dict(password=lambda v, c, m, p: '*****')
+    column_formatters = {
+        'password': lambda v, c, m, p: '*****'
+    }
     column_searchable_list = ('name', 'email')
     column_sortable_list = ()
     form_columns = ('name', 'last_name', 'email', 'password', 'role')
-    form_args = dict(
-        name=dict(validators=[DataRequired()]),
-        last_name=dict(validators=[DataRequired()]),
-        email=dict(validators=[DataRequired()]),
-        password=dict(validators=[DataRequired()]),
-        role=dict(validators=[DataRequired()])
-    )
+    form_args = {
+        'name': {'validators': [DataRequired()]},
+        'last_name': {'validators': [DataRequired()]},
+        'email': {'validators': [DataRequired()]},
+        'password': {'validators': [DataRequired()]},
+        'role': {'validators': [DataRequired()]}
+    }
 
     def on_model_change(self, form, model, is_created):
         model.password = generate_password_hash(model.password, method='pbkdf2:sha256')
-
 
 class RoleView(AppModelView):
 
