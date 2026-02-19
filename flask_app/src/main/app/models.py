@@ -179,30 +179,17 @@ class UserView(AppModelView):
 class RoleView(AppModelView):
 
     column_list = ('name',)
-    column_labels = dict(name='Name')
+    column_labels = {
+        'name': 'Name'
+    }
     column_filters = ('name',)
     column_searchable_list = ('name',)
-    column_sortable_list = ()
+    column_sortable_list = () 
     form_columns = ('name',)
-    form_args = dict(
-        name=dict(validators=[DataRequired()])
-    )
+    form_args = {
+        'name': {'validators': [DataRequired()]}
+    }
 
-# class BookingView(AppModelView):
-  
-#     column_list = ('park','date', 'num_tickets', 'health_safety', 'user')
-#     column_labels = dict(park='Park', date='Date', num_tickets='Number of Tickets', health_safety='Health & Safety', user='User')
-#     column_filters = ('park', 'user')
-#     column_searchable_list = ('park.name', 'user.name')
-#     column_sortable_list = ()
-#     form_columns = ('park', 'date', 'num_tickets', 'health_safety', 'user')
-#     form_args = dict(
-#         park=dict(validators=[DataRequired()]),
-#         user=dict(validators=[DataRequired()]),
-#         date=dict(validators=[DataRequired()]),
-#         num_tickets=dict(validators=[DataRequired()]),
-#         health_safety=dict(validators=[DataRequired()])
-#     )
 class BookingView(AppModelView):
   
     column_list = ('park', 'date', 'num_tickets', 'health_safety', 'user')  
