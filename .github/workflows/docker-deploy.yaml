@@ -1,0 +1,167 @@
+name: Docker Build, Push & Deploy
+
+on:
+  push:
+    branches: [feature/SCRUM-159-onlineApplicationDeployment]
+  workflow_dispatch:
+
+env:
+  DOCKER_IMAGE_NAME: wicked-adventures
+  REGISTRY: docker.io
+
+jobs:
+  build-and-push:
+    name: Build and Push Docker Image
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKER_HUB_USERNAME }}
+          password: ${{ secrets.DOCKER_HUB_ACCESS_TOKEN }}
+
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v5
+        with:
+          context: ./flask_app/src
+          push: true
+          tags: |
+            ${{ secrets.DOCKER_HUB_USERNAME }}/${{ env.DOCKER_IMAGE_NAME }}:latest
+            ${{ secrets.DOCKER_HUB_USERNAME }}/${{ env.DOCKER_IMAGE_NAME }}:${{ github.sha }}
+          cache-from: type=registry,ref=${{ secrets.DOCKER_HUB_USERNAME }}/${{ env.DOCKER_IMAGE_NAME }}:buildcache
+          cache-to: type=registry,ref=${{ secrets.DOCKER_HUB_USERNAME }}/${{ env.DOCKER_IMAGE_NAME }}:buildcache,mode=max
+
+  deploy:
+    name: Deploy to EC2
+    runs-on: ubuntu-latest
+    needs: build-and-push
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up SSH
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.EC2_SSH_KEY }}" > ~/.ssh/deploy-key.pem
+          chmod 600 ~/.ssh/deploy-key.pem
+          ssh-keyscan -H ${{ secrets.EC2_HOST }} >> ~/.ssh/known_hosts 2>/dev/null || true
+
+      - name: Pull and run Docker image on EC2
+        run: |
+          ssh -i ~/.ssh/deploy-key.pem ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }} << 'EOF'
+          set -e
+
+          echo "========================================"
+          echo "Docker Deployment Started"
+          echo "========================================"
+          echo ""
+
+          # Set variables
+          IMAGE_NAME="${{ secrets.DOCKER_HUB_USERNAME }}/${{ env.DOCKER_IMAGE_NAME }}"
+          CONTAINER_NAME="wicked-adventures"
+
+          echo "Image: $IMAGE_NAME"
+          echo "Container: $CONTAINER_NAME"
+          echo ""
+
+          # Log in to Docker Hub
+          echo "Logging in to Docker Hub..."
+          docker login -u "${{ secrets.DOCKER_HUB_USERNAME }}" -p "${{ secrets.DOCKER_HUB_ACCESS_TOKEN }}"
+          echo ""
+
+          # Pull latest image
+          echo "Pulling latest Docker image..."
+          docker pull $IMAGE_NAME:latest
+          echo "✓ Image pulled successfully"
+          echo ""
+
+          # Stop existing container
+          echo "Stopping existing container (if any)..."
+          docker stop $CONTAINER_NAME 2>/dev/null || echo "No existing container"
+          docker rm $CONTAINER_NAME 2>/dev/null || echo "No container to remove"
+          echo ""
+
+          # Run new container
+          echo "Running new container..."
+          docker run -d \
+            --name $CONTAINER_NAME \
+            -p 80:5000 \
+            -e FLASK_ENV=production \
+            -e SECRET_KEY="${{ secrets.SECRET_KEY }}" \
+            -e SEED_ADMIN_PASSWORD="${{ secrets.SEED_ADMIN_PASSWORD }}" \
+            $IMAGE_NAME:latest
+
+          echo "✓ Container started"
+          echo ""
+
+          # Wait for container to be ready
+          echo "Waiting for application to start..."
+          sleep 5
+
+          # Check if container is running
+          if docker ps | grep -q $CONTAINER_NAME; then
+            echo "✓ Container is running successfully"
+            docker ps | grep $CONTAINER_NAME
+          else
+            echo "✗ Container failed to start"
+            echo "Checking logs:"
+            docker logs $CONTAINER_NAME
+            exit 1
+          fi
+
+          echo ""
+          echo "========================================"
+          echo "✓ Deployment Successful!"
+          echo "========================================"
+          echo ""
+          echo "Application accessible at:"
+          echo "http://${{ secrets.EC2_HOST }}"
+          echo ""
+          echo "Admin Login:"
+          echo "Email: admin@wicked.com"
+          echo "Password: Your SEED_ADMIN_PASSWORD"
+          echo ""
+
+          EOF
+
+      - name: Verify application
+        run: |
+          sleep 3
+          echo "Testing application..."
+          if curl -f http://${{ secrets.EC2_HOST }}/ > /dev/null 2>&1; then
+            echo "✓ Application is responding!"
+          else
+            echo "⚠ Application not responding yet (might need more time)"
+          fi
+
+      - name: Deployment Summary
+        if: success()
+        run: |
+          echo "========================================="
+          echo "✓ DOCKER DEPLOYMENT SUCCESSFUL"
+          echo "========================================="
+          echo ""
+          echo "Application Details:"
+          echo "  URL: http://${{ secrets.EC2_HOST }}"
+          echo "  Region: EU (Ireland)"
+          echo "  Image: ${{ secrets.DOCKER_HUB_USERNAME }}/wicked-adventures:latest"
+          echo ""
+          echo "Next Steps:"
+          echo "1. Open browser to http://${{ secrets.EC2_HOST }}"
+          echo "2. Login with admin@wicked.com"
+          echo "3. Enjoy your deployed app!"
+          echo ""
+          echo "View container logs:"
+          echo "  docker logs wicked-adventures"
+          echo "  docker logs -f wicked-adventures (live logs)"
+          echo ""
