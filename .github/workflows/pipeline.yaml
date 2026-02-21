@@ -10,6 +10,10 @@ on:
     branches: [main]
   workflow_dispatch:
 
+env:
+  DOCKER_IMAGE_NAME: wicked-adventures
+  REGISTRY: docker.io
+
 jobs:
   # ============================================================
   # JOB 1: BUILD AND TEST
@@ -343,8 +347,6 @@ jobs:
       SECRET_KEY: ${{ secrets.SECRET_KEY }}
       SEED_ADMIN_PASSWORD: ${{ secrets.SEED_ADMIN_PASSWORD }}
       FLASK_ENV: development
-      DOCKER_IMAGE_NAME: wicked-adventures
-      REGISTRY: docker.io
 
     steps:
       # ======================================================
@@ -854,6 +856,9 @@ jobs:
     runs-on: ubuntu-latest
     needs: docker-build
     timeout-minutes: 10
+    env:
+      SECRET_KEY: ${{ secrets.SECRET_KEY }}
+      SEED_ADMIN_PASSWORD: ${{ secrets.SEED_ADMIN_PASSWORD }}
 
     steps:
       - name: Checkout code
@@ -868,7 +873,10 @@ jobs:
 
       - name: Pull and run Docker image on EC2
         run: |
-          ssh -i ~/.ssh/deploy-key.pem ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }} << 'EOF'
+          # Expand variables BEFORE sending to SSH
+          IMAGE_NAME="${{ secrets.DOCKER_HUB_USERNAME }}/${{ env.DOCKER_IMAGE_NAME }}"
+
+          ssh -i ~/.ssh/deploy-key.pem ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }} << EOF
           set -e
 
           echo "========================================"
@@ -877,11 +885,11 @@ jobs:
           echo ""
 
           # Set variables
-          IMAGE_NAME="${{ secrets.DOCKER_HUB_USERNAME }}/${{ env.DOCKER_IMAGE_NAME }}"
+          IMAGE_NAME="$IMAGE_NAME"
           CONTAINER_NAME="wicked-adventures"
 
-          echo "Image: $IMAGE_NAME"
-          echo "Container: $CONTAINER_NAME"
+          echo "Image: \$IMAGE_NAME"
+          echo "Container: \$CONTAINER_NAME"
           echo ""
 
           # Log in to Docker Hub
@@ -891,25 +899,25 @@ jobs:
 
           # Pull latest image
           echo "Pulling latest Docker image..."
-          docker pull $IMAGE_NAME:latest
+          docker pull \$IMAGE_NAME:latest
           echo "✓ Image pulled successfully"
           echo ""
 
           # Stop existing container
           echo "Stopping existing container (if any)..."
-          docker stop $CONTAINER_NAME 2>/dev/null || echo "No existing container"
-          docker rm $CONTAINER_NAME 2>/dev/null || echo "No container to remove"
+          docker stop \$CONTAINER_NAME 2>/dev/null || echo "No existing container"
+          docker rm \$CONTAINER_NAME 2>/dev/null || echo "No container to remove"
           echo ""
 
           # Run new container
           echo "Running new container..."
           docker run -d \
-            --name $CONTAINER_NAME \
+            --name \$CONTAINER_NAME \
             -p 80:5000 \
             -e FLASK_ENV=production \
             -e SECRET_KEY="${{ secrets.SECRET_KEY }}" \
             -e SEED_ADMIN_PASSWORD="${{ secrets.SEED_ADMIN_PASSWORD }}" \
-            $IMAGE_NAME:latest
+            \$IMAGE_NAME:latest
 
           echo ""
           echo "DOCKER DEPLOYMENT COMPLETED SUCCESSFULLY"
