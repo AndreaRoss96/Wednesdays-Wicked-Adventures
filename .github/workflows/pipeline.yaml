@@ -1,7 +1,7 @@
 # ============================================================
 # PIPELINE
 # ============================================================
-name: CI/CD Pipeline 
+name: CI/CD Pipeline
 
 on:
   push:
@@ -22,7 +22,7 @@ jobs:
       SECRET_KEY: ${{ secrets.SECRET_KEY }}
       SEED_ADMIN_PASSWORD: ${{ secrets.SEED_ADMIN_PASSWORD }}
       FLASK_ENV: development
-    
+
     steps:
       # ======================================================
       # STEP 1: CHECKOUT CODE
@@ -30,8 +30,8 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
         with:
-          fetch-depth: 0  # Shallow clones disabled for SonarCloud
-      
+          fetch-depth: 0 # Shallow clones disabled for SonarCloud
+
       # ======================================================
       # STEP 2: SETUP PYTHON
       # ======================================================
@@ -39,7 +39,7 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: "3.11"
-      
+
       # ======================================================
       # PHASE 3: SETUP ENVIRONMENT
       # ======================================================
@@ -57,13 +57,13 @@ jobs:
           cd flask_app/src/main
           echo "Current directory: $(pwd)"
           echo ""
-          
+
           # Create venv 
           echo "Creating virtual environment..."
           python3 -m venv venv
           echo "Venv created at: $(pwd)/venv"
           echo ""
-          
+
           # Activate venv
           echo "Activating venv..."
           source venv/bin/activate
@@ -71,19 +71,19 @@ jobs:
           echo "Python: $(which python)"
           echo "Version: $(python --version)"
           echo ""
-          
+
           # Update pip
           echo "Upgrading pip..."
           python -m pip install --upgrade pip
           echo ""
-          
+
           # Install requirements 
           echo "Installing requirements.txt..."
           echo "From: ../requirements.txt"
           pip install -r ../requirements.txt
           echo "Requirements installed"
           echo ""
-          
+
           # Install extra packages 
           echo "Checking pytest..."
           if ! pip show pytest >/dev/null 2>&1; then
@@ -92,14 +92,14 @@ jobs:
           fi
           echo "Pytest available"
           echo ""
-          
+
           # Show pytest
           echo "Showing pytest..."
           pip show Flask pytest | grep -E "^(Name|Version):" || true
           echo ""
-          
+
           echo "SETUP COMPLETED SUCCESSFULLY"
-      
+
       # ======================================================
       # PHASE 4: CODE QUALITY - FLAKE8 LINTING
       # ======================================================
@@ -108,7 +108,7 @@ jobs:
         run: |
           echo "PHASE 4: CODE QUALITY - FLAKE8"
           echo "================================"
-          
+
           # Activate venv and go to project
           echo "Activating venv..."
           cd flask_app/src/main
@@ -117,7 +117,7 @@ jobs:
           echo ""
 
           echo "Flake8 version: $(flake8 --version)"
-          
+
           echo "Running critical error checks..."
           flake8 . \
             --count \
@@ -125,7 +125,7 @@ jobs:
             --show-source \
             --statistics \
             --exclude=venv,__pycache__,.git,.pytest_cache
-          
+
           echo "Running extended style checks..."
           flake8 . \
             --count \
@@ -137,9 +137,9 @@ jobs:
               echo ""
               echo "Style warnings found (not blocking pipeline)"
           }
-          
+
           echo "FLAKE8 LINTING COMPLETED"
-      
+
       # ======================================================
       # PHASE 5: SECURITY SCAN (SAST) - BANDIT
       # ======================================================
@@ -149,14 +149,14 @@ jobs:
           echo "PHASE 5: SECURITY SCAN"
           echo "========================="
           echo ""
-          
+
           # Activate venv and go to project
           echo "Activating venv..."
           cd flask_app/src/main
           source venv/bin/activate
           echo "Directory: $(pwd)"
           echo ""
-          
+
           # Install bandit if needed
           echo "Checking bandit..."
           if ! pip show bandit >/dev/null 2>&1; then
@@ -165,7 +165,7 @@ jobs:
           fi
           echo "Bandit available"
           echo ""
-          
+
           # Create reports directory
           echo "Creating reports directory..."
           cd ..
@@ -177,7 +177,7 @@ jobs:
             --skip B101 \
             -f json \
             -o Bandit/bandit-results.json
-          
+
           # Show summary
           echo ""
           echo "Scan completed. Reports saved in Bandit/"
@@ -196,7 +196,7 @@ jobs:
           print(f'Low severity: {len([r for r in data[\"results\"] if r[\"issue_severity\"] == \"LOW\"])}')
             "
           fi
-          
+
           echo "SECURITY PHASE COMPLETED"
 
       - name: Upload security reports
@@ -205,7 +205,6 @@ jobs:
         with:
           name: security-reports
           path: flask_app/src/Bandit/
-
 
       # ======================================================
       # PHASE 6: RUN SMOKE TESTS (NEW)
@@ -216,7 +215,7 @@ jobs:
           echo "PHASE 6: RUN SMOKE TESTS"
           echo "=========================="
           echo ""
-          
+
           # Activate venv and go to project
           echo "Activating venv..."
           cd flask_app/src/main
@@ -224,12 +223,12 @@ jobs:
           echo "Directory: $(pwd)"
           echo "Python: $(which python)"
           echo ""
-          
+
           # Navigate to src directory for pytest
           cd "${{ github.workspace }}/flask_app/src"
           echo "Running from: $(pwd)"
           echo ""
-          
+
           # Verify test structure
           echo "Checking smoke test structure..."
           if [ -d "tests/smoke" ] && [ -f "tests/smoke/test_smoke.py" ]; then
@@ -238,18 +237,17 @@ jobs:
             echo "⚠ Warning: tests/smoke/test_smoke.py not found"
           fi
           echo ""
-          
+
           # Run smoke tests
           echo "Running smoke tests..."
           python -m pytest tests/smoke/ \
             -v \
             --tb=short \
             --color=yes
-          
+
           echo ""
           echo "SMOKE TESTS COMPLETED SUCCESSFULLY"
 
-      
       # ======================================================
       # PHASE 7: RUN TESTS WITH PYTEST
       # ======================================================
@@ -259,7 +257,7 @@ jobs:
           echo "PHASE 7: RUN TESTS"
           echo "====================="
           echo ""
-          
+
           # Activate venv and go to project
           echo "Activating venv..."
           cd flask_app/src/main
@@ -267,16 +265,16 @@ jobs:
           echo "Directory: $(pwd)"
           echo "Python: $(which python)"
           echo ""
-          
+
           # Check test structure
           echo "Test structure:"
           find . -name "*test*.py" -type f | head -10 || echo "No tests found"
           echo ""
-          
+
           echo "Running pytest..."
           cd "${{ github.workspace }}/flask_app/src"
           python -m pytest --cov=app --cov-report=xml --cov-report=term-missing
-          
+
           echo ""
           echo "TESTS EXECUTED SUCCESSFULLY"
 
@@ -297,7 +295,7 @@ jobs:
             -Dsonar.verbose=true
             -Dsonar.qualitygate.wait=false
             -Dsonar.scm.disabled=true
-      
+
       # ======================================================
       # PHASE 9: PIPELINE SUMMARY
       # ======================================================
@@ -332,27 +330,58 @@ jobs:
           echo "========================================"
           echo "PIPELINE EXECUTION COMPLETE"
           echo "========================================"
-  
+
   # ============================================================
-  # JOB 2: DOCKER BUILD AND TEST
+  # JOB 2: DOCKER BUILD, TEST & PUSH
   # ============================================================
   docker-build:
-    name: Docker Build & Test
+    name: Docker Build, Test & Push
     runs-on: ubuntu-latest
-    needs: ci-pipeline  # runs after CI pipeline succeeds
+    needs: ci-pipeline # runs after CI pipeline succeeds
     timeout-minutes: 15
     env:
       SECRET_KEY: ${{ secrets.SECRET_KEY }}
       SEED_ADMIN_PASSWORD: ${{ secrets.SEED_ADMIN_PASSWORD }}
       FLASK_ENV: development
-    
+      DOCKER_IMAGE_NAME: wicked-adventures
+      REGISTRY: docker.io
+
     steps:
       # ======================================================
       # STEP 1: CHECKOUT CODE
       # ======================================================
       - name: Checkout repository
         uses: actions/checkout@v4
-      
+
+      # ======================================================
+      # STEP 2: SETUP DOCKER
+      # ======================================================
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      # ======================================================
+      # STEP 3: LOG IN TO DOCKER HUB
+      # ======================================================
+      - name: Log in to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKER_HUB_USERNAME }}
+          password: ${{ secrets.DOCKER_HUB_ACCESS_TOKEN }}
+
+      # ======================================================
+      # STEP 4: BUILD AND PUSH DOCKER IMAGE
+      # ======================================================
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v5
+        with:
+          context: ./flask_app/src
+          push: true
+          tags: |
+            ${{ secrets.DOCKER_HUB_USERNAME }}/${{ env.DOCKER_IMAGE_NAME }}:latest
+            ${{ secrets.DOCKER_HUB_USERNAME }}/${{ env.DOCKER_IMAGE_NAME }}:${{ github.sha }}
+          cache-from: type=registry,ref=${{ secrets.DOCKER_HUB_USERNAME }}/${{ env.DOCKER_IMAGE_NAME }}:buildcache
+          cache-to: type=registry,ref=${{ secrets.DOCKER_HUB_USERNAME }}/${{ env.DOCKER_IMAGE_NAME }}:buildcache,mode=max
+
       # ======================================================
       # PHASE 1: BUILD DOCKER IMAGE
       # ======================================================
@@ -362,12 +391,12 @@ jobs:
           echo "PHASE 1: BUILD DOCKER IMAGE"
           echo "============================"
           echo ""
-          
+
           # Go to the directory with Dockerfile
           cd flask_app/src
           echo "Current directory: $(pwd)"
           echo ""
-          
+
           # Verify required files exist
           echo "Verifying build files..."
           if [ ! -f "Dockerfile" ]; then
@@ -388,30 +417,30 @@ jobs:
           fi
           echo "All required files are present!"
           echo ""
-          
+
           # Build Docker Image
           echo "Building Docker image..."
           docker build -t wicked-adventures:latest .
           echo "Docker image built successfully"
           echo ""
-          
+
           # Verify the image was created
           echo "Verifying Docker image..."
           docker images | grep wicked-adventures
           echo ""
-          
+
           # Get image details
           echo "Image details:"
           docker images wicked-adventures:latest --format "table {{.Repository}}\t{{.Tag}}\t{{.Size}}\t{{.CreatedAt}}"
           echo ""
-          
+
           # Test the image - basic import test
           echo "Testing basic import..."
           docker run --rm wicked-adventures:latest python -c "import app; print('App imports successfully')"
           echo ""
-          
+
           echo "DOCKER BUILD COMPLETED SUCCESSFULLY"
-      
+
       # ======================================================
       # PHASE 2: TRIVY VULNERABILITY SCAN
       # ======================================================
@@ -421,7 +450,7 @@ jobs:
           echo "PHASE 2: TRIVY VULNERABILITY SCAN"
           echo "=================================="
           echo ""
-          
+
           # install Trivy
           echo "Installing Trivy..."
           sudo apt-get update -y
@@ -432,17 +461,17 @@ jobs:
           sudo apt-get install -y trivy
           echo "Trivy installed successfully"
           echo ""
-          
+
           # check Trivy installation
           echo "Trivy version:"
           trivy --version
           echo ""
-          
+
           # create directory for report
           mkdir -p trivy-reports
           echo "Reports directory created: $(pwd)/trivy-reports"
           echo ""
-          
+
           # run Trivy scan - Table format 
           echo "Running Trivy vulnerability scan (Table format)..."
           trivy image \
@@ -451,7 +480,7 @@ jobs:
             --output trivy-reports/trivy-report.txt \
             wicked-adventures:latest
           echo ""
-          
+
           # run Trivy scan - JSON format 
           echo "Running Trivy vulnerability scan (JSON format)..."
           trivy image \
@@ -460,7 +489,7 @@ jobs:
             --output trivy-reports/trivy-report.json \
             wicked-adventures:latest
           echo ""
-          
+
           # Display scan results
           echo "Trivy scan complete!"
           echo ""
@@ -469,19 +498,19 @@ jobs:
           echo "=========================================="
           cat trivy-reports/trivy-report.txt
           echo ""
-          
+
           # Parse JSON and show counts
           if [ -f "trivy-reports/trivy-report.json" ]; then
             echo "Vulnerability counts:"
             python3 << 'PYEOF'
           import json
-          
+
           with open('trivy-reports/trivy-report.json', 'r') as f:
               data = json.load(f)
-          
+
           critical_count = 0
           high_count = 0
-          
+
           if 'Results' in data:
               for result in data['Results']:
                   if 'Vulnerabilities' in result:
@@ -491,26 +520,26 @@ jobs:
                               critical_count += 1
                           elif severity == 'HIGH':
                               high_count += 1
-          
+
           print(f"CRITICAL: {critical_count}")
           print(f"HIGH:     {high_count}")
           print(f"TOTAL:    {critical_count + high_count}")
-          
+
           if critical_count > 0:
               print("")
               print(f"WARNING: {critical_count} CRITICAL vulnerabilities found!")
           if high_count > 0:
               print(f"WARNING: {high_count} HIGH vulnerabilities found!")
-          
+
           if critical_count == 0 and high_count == 0:
               print("")
               print("No HIGH or CRITICAL vulnerabilities found!")
           PYEOF
           fi
-          
+
           echo ""
           echo "TRIVY SCAN COMPLETED"
-      
+
       # ======================================================
       # PHASE 3: UPLOAD TRIVY REPORTS
       # ======================================================
@@ -522,7 +551,6 @@ jobs:
           path: trivy-reports/
           retention-days: 7
 
-      
       # ======================================================
       # PHASE 4: TEST DOCKER CONTAINER
       # ======================================================
@@ -532,7 +560,7 @@ jobs:
           echo "PHASE 2: TEST DOCKER CONTAINER"
           echo "==============================="
           echo ""
-          
+
           # Run container with environment variables from secrets
           echo "Starting Docker container with environment variables..."
           docker run -d \
@@ -542,7 +570,7 @@ jobs:
             -e SEED_ADMIN_PASSWORD="${{ secrets.SEED_ADMIN_PASSWORD }}" \
             -e FLASK_ENV="${{ env.FLASK_ENV }}" \
             wicked-adventures:latest
-          
+
           echo "Container started"
           echo "Container ID: $(docker ps -q -f name=test-wicked)"
           echo ""
@@ -550,17 +578,17 @@ jobs:
           echo "wait for Flask to start..."
           sleep 15  
           echo ""
-          
+
           # check container status
           echo "Container status:"
           docker ps | grep test-wicked
           echo ""
-          
+
           # check container logs
           echo "Container logs:"
           docker logs test-wicked --tail 20
           echo ""
-          
+
           # verify container is running
           if [ "$(docker ps -q -f name=test-wicked)" ]; then
             echo "Container is running"
@@ -570,7 +598,7 @@ jobs:
             exit 1
           fi
           echo ""
-          
+
           # test health endpoint 
           echo "Testing container response..."
           if curl -f http://localhost:5000/ --max-time 10 2>/dev/null; then
@@ -581,12 +609,12 @@ jobs:
             docker exec test-wicked ps aux | grep flask || echo "Flask process check"
           fi
           echo ""
-          
+
           # get container stats
           echo "Container resource usage:"
           docker stats test-wicked --no-stream --format "table {{.Container}}\t{{.CPUPerc}}\t{{.MemUsage}}"
           echo ""
-          
+
           echo "DOCKER CONTAINER TESTING COMPLETED"
 
       # ======================================================
@@ -673,7 +701,7 @@ jobs:
           echo "Generating consolidated report..."
           echo "================================="
           cat > dast-reports/summary.txt << EOF
-          
+
           ========================================
           DAST SECURITY SCAN SUMMARY
           ========================================
@@ -760,31 +788,32 @@ jobs:
           retention-days: 7
 
       # ======================================================
-      # PHASE 7: CLEANUP
+      # PHASE 7: CLEANUP -> REPLACED BY DEPLOYEMENT JOB
       # ======================================================
-      - name: Cleanup Docker Container
-        if: always()
-        run: |
-          echo "PHASE 5: CLEANUP"
-          echo "================"
-          echo ""
-          
-          # stop and remove container
-          if [ "$(docker ps -q -f name=test-wicked)" ]; then
-            echo "Stopping container..."
-            docker stop test-wicked
-            echo "Container stopped"
-          fi
-          
-          if [ "$(docker ps -aq -f name=test-wicked)" ]; then
-            echo "Removing container..."
-            docker rm test-wicked
-            echo "Container removed"
-          fi
-          echo ""
-          
-          echo "CLEANUP COMPLETED"
-      
+
+      #      - name: Cleanup Docker Container
+      #        if: always()
+      #        run: |
+      #          echo "PHASE 5: CLEANUP"
+      #          echo "================"
+      #          echo ""
+      #
+      #          # stop and remove container
+      #          if [ "$(docker ps -q -f name=test-wicked)" ]; then
+      #            echo "Stopping container..."
+      #            docker stop test-wicked
+      #            echo "Container stopped"
+      #          fi
+      #
+      #          if [ "$(docker ps -aq -f name=test-wicked)" ]; then
+      #            echo "Removing container..."
+      #            docker rm test-wicked
+      #            echo "Container removed"
+      #          fi
+      #          echo ""
+      #
+      #          echo "CLEANUP COMPLETED"
+
       # ======================================================
       # PHASE 8: DOCKER JOB SUMMARY
       # ======================================================
@@ -803,7 +832,7 @@ jobs:
           echo ""
           echo "Overall Status.......: ${{ job.status }}"
           echo ""
-          
+
           if [ "${{ job.status }}" = "success" ]; then
             echo "DOCKER JOB COMPLETED SUCCESSFULLY!"
             echo "Docker image built"
@@ -814,11 +843,81 @@ jobs:
           else
             echo "Docker job failed"
           fi
-          
+
           echo ""
           echo "========================================"
           echo "DOCKER JOB EXECUTION COMPLETE"
           echo "========================================"
+
+  deploy:
+    name: deploy to EC2
+    runs-on: ubuntu-latest
+    needs: docker-build
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up SSH
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.EC2_SSH_KEY }}" > ~/.ssh/deploy-key.pem
+          chmod 600 ~/.ssh/deploy-key.pem
+          ssh-keyscan -H ${{ secrets.EC2_HOST }} >> ~/.ssh/known_hosts 2>/dev/null || true
+
+      - name: Pull and run Docker image on EC2
+        run: |
+          ssh -i ~/.ssh/deploy-key.pem ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }} << 'EOF'
+          set -e
+
+          echo "========================================"
+          echo "Docker Deployment Started"
+          echo "========================================"
+          echo ""
+
+          # Set variables
+          IMAGE_NAME="${{ secrets.DOCKER_HUB_USERNAME }}/${{ env.DOCKER_IMAGE_NAME }}"
+          CONTAINER_NAME="wicked-adventures"
+
+          echo "Image: $IMAGE_NAME"
+          echo "Container: $CONTAINER_NAME"
+          echo ""
+
+          # Log in to Docker Hub
+          echo "Logging in to Docker Hub..."
+          docker login -u "${{ secrets.DOCKER_HUB_USERNAME }}" -p "${{ secrets.DOCKER_HUB_ACCESS_TOKEN }}"
+          echo ""
+
+          # Pull latest image
+          echo "Pulling latest Docker image..."
+          docker pull $IMAGE_NAME:latest
+          echo "✓ Image pulled successfully"
+          echo ""
+
+          # Stop existing container
+          echo "Stopping existing container (if any)..."
+          docker stop $CONTAINER_NAME 2>/dev/null || echo "No existing container"
+          docker rm $CONTAINER_NAME 2>/dev/null || echo "No container to remove"
+          echo ""
+
+          # Run new container
+          echo "Running new container..."
+          docker run -d \
+            --name $CONTAINER_NAME \
+            -p 80:5000 \
+            -e FLASK_ENV=production \
+            -e SECRET_KEY="${{ secrets.SECRET_KEY }}" \
+            -e SEED_ADMIN_PASSWORD="${{ secrets.SEED_ADMIN_PASSWORD }}" \
+            $IMAGE_NAME:latest
+
+          echo ""
+          echo "DOCKER DEPLOYMENT COMPLETED SUCCESSFULLY"
+          echo "Application accessible at:"
+          echo "http://${{ secrets.EC2_HOST }}"
+          echo ""
+
+          EOF
 
   # ============================================================
   # DOCUMENTATION BUILD JOB
@@ -835,7 +934,7 @@ jobs:
       - name: Setup Python
         uses: actions/setup-python@v5
         with:
-          python-version: '3.11'
+          python-version: "3.11"
 
       - name: Install MkDocs
         run: pip install mkdocs mkdocs-material pymdown-extensions

@@ -2,7 +2,7 @@ name: Docker Build, Push & Deploy
 
 on:
   push:
-    branches: [feature/SCRUM-159-onlineApplicationDeployment]
+    branches: []
   workflow_dispatch:
 
 env:
