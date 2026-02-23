@@ -2,27 +2,48 @@
 
 This document describes the security measures and tools used in the project.
 
+## Security Pipeline Overview
+
+The project implements a multi-layered security approach across two pipeline jobs:
+
+```
+Job 1: CI Pipeline
+  └── Phase 5: Bandit (SAST) --> Scan source code for vulnerabilities
+
+Job 2: Docker Build & Test
+  ├── Phase 2: Trivy --> Scan Docker image for CVEs
+  └── Phase 5: Nuclei (DAST) --> Scan running application
+```
+
 ## SAST - Static Application Security Testing
 
 ### Bandit
 
-**Bandit** is a tool designed to find common security issues in Python code.
+**Bandit** scans Python source code for common security issues.
 
 **Running locally:**
 ```bash
-cd flask_app/src/main
+cd flask_app/src
 pip install bandit
-bandit -r . -f json -o bandit-results.json
+bandit -r ./main/app --skip B101 -f json -o Bandit/bandit-results.json
 ```
 
-**CI Integration:**
+**CI Integration (Phase 5 of CI Pipeline):**
 
-Bandit runs automatically in the CI pipeline (Phase 5):
-```yaml
-- name: Security Scan (SAST)
-  run: |
-    pip install bandit
-    bandit -r . -f json -o bandit-results.json
+| Setting | Value |
+|---------|-------|
+| Target | `main/app` directory |
+| Skipped checks | B101 (assert statements in tests) |
+| Output | JSON report in `Bandit/bandit-results.json` |
+| Artifact | `security-reports` |
+
+**Summary output in CI:**
+```
+Total files scanned: ...
+Total issues found: ...
+High severity: ...
+Medium severity: ...
+Low severity: ...
 ```
 
 **What Bandit Checks:**
@@ -46,6 +67,81 @@ Bandit runs automatically in the CI pipeline (Phase 5):
 | HIGH | Must fix before merge |
 | MEDIUM | Should fix |
 | LOW | Review and decide |
+
+## Container Scanning - Trivy
+
+**Trivy** scans the Docker image for known vulnerabilities (CVEs) in OS packages and dependencies.
+
+**CI Integration (Phase 2 of Docker job):**
+
+| Setting | Value |
+|---------|-------|
+| Image scanned | `wicked-adventures:latest` |
+| Severity filter | HIGH, CRITICAL only |
+| Output formats | Table (human-readable) + JSON (parsing) |
+| Artifact | `trivy-reports` (7-day retention) |
+
+**Running locally:**
+```bash
+# Build the image first
+cd flask_app/src
+docker build -t wicked-adventures:latest .
+
+# Scan with Trivy
+trivy image --severity HIGH,CRITICAL wicked-adventures:latest
+```
+
+**Summary output in CI:**
+```
+CRITICAL: 0
+HIGH:     2
+TOTAL:    2
+```
+
+**What Trivy Detects:**
+
+- Vulnerable OS packages in the Docker image
+- Known CVEs in Python dependencies
+- Outdated base image components
+
+## DAST - Dynamic Application Security Testing
+
+### Nuclei
+
+**Nuclei** by ProjectDiscovery scans the running application for vulnerabilities, missing headers, and exposed panels.
+
+**CI Integration (Phase 5 of Docker job):**
+
+The pipeline starts the Docker container, then runs 3 Nuclei scans against `http://localhost:5000`:
+
+| Scan | Templates | Severity | Timeout |
+|------|-----------|----------|---------|
+| Critical vulnerabilities | `http/security-misconfiguration/` | critical | 90s |
+| Security headers | `http/missing-headers/` | medium, high | 60s |
+| Exposed panels | `http/exposed-panels/` | medium, high, critical | 60s |
+
+**Artifact:** `dast-reports` (7-day retention) containing:
+- `critical-scan.json` - Critical vulnerability findings
+- `headers-scan.json` - Missing security headers
+- `panels-scan.json` - Exposed admin/debug panels
+- `summary.txt` - Consolidated report with severity counts
+
+**Running locally:**
+```bash
+# Start the application
+docker run -d --name test-app -p 5000:5000 \
+  -e SECRET_KEY=xxx -e SEED_ADMIN_PASSWORD=xxx \
+  wicked-adventures:latest
+
+# Run Nuclei scan
+docker run --rm projectdiscovery/nuclei:latest \
+  -u http://host.docker.internal:5000 \
+  -t http/missing-headers/ \
+  -severity medium,high
+
+# Cleanup
+docker stop test-app && docker rm test-app
+```
 
 ## Application Security
 
@@ -91,19 +187,6 @@ is_valid = check_password_hash(stored_hash, provided_password)
 | Development | **Enabled** |
 | Testing | Disabled (for automated tests) |
 | Production | **Enabled** |
-
-**Configuration:**
-```python
-# config.py
-class DevelopmentConfig(Config):
-    WTF_CSRF_ENABLED = True
-
-class TestingConfig(Config):
-    WTF_CSRF_ENABLED = False
-
-class ProductionConfig(Config):
-    WTF_CSRF_ENABLED = True
-```
 
 ### Secret Management
 
@@ -152,42 +235,33 @@ Before deploying to production:
 - [ ] SEED_ADMIN_PASSWORD set from environment
 - [ ] SQL injection prevention (using ORM)
 - [ ] XSS prevention (Jinja2 template escaping)
-- [ ] Bandit scan passed
+- [ ] Bandit scan passed (no HIGH findings)
+- [ ] Trivy scan reviewed (no unpatched CRITICAL CVEs)
+- [ ] Nuclei scan reviewed (no exposed panels)
 - [ ] Dependencies up to date
-
-## DAST - Dynamic Application Security Testing
-
-### Planned Implementation
-
-DAST scans the running application for vulnerabilities:
-
-**Tool:** OWASP ZAP (Zed Attack Proxy)
-
-**Scan Types:**
-- Baseline scan (quick)
-- Full scan (comprehensive)
-
-**Integration Plan:**
-1. Deploy app to test environment
-2. Run ZAP baseline scan
-3. Generate report
-4. Fail pipeline on high-severity findings
 
 ## Security Evidence for Assignment
 
 To demonstrate security processes:
 
-1. **Bandit Report**
-   - Screenshot of scan results in CI logs
-   - Show severity breakdown
+1. **Bandit Report (SAST)**
+   - CI logs showing scan results
+   - `security-reports` artifact with `bandit-results.json`
+   - Severity breakdown (HIGH/MEDIUM/LOW)
 
-2. **CI Security Phase**
-   - Green status on security step
-   - bandit-results.json artifact
+2. **Trivy Report (Container Scanning)**
+   - CI logs showing vulnerability counts
+   - `trivy-reports` artifact with JSON + table reports
+   - CRITICAL/HIGH counts
 
-3. **Code Review**
-   - Security-focused review comments
-   - Evidence of security fixes
+3. **Nuclei Report (DAST)**
+   - CI logs showing scan results against running container
+   - `dast-reports` artifact with scan JSONs + summary
+   - Missing headers and exposed panels findings
+
+4. **Pipeline Evidence**
+   - Green security phase in CI run
+   - All 3 security tools running automatically on every PR
 
 ## Incident Response
 

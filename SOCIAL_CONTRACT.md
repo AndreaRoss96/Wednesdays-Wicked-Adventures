@@ -78,9 +78,10 @@ By contributing to this repository, team members agree to follow this social con
 
 | Name             |    Date    |
 |------------------|------------|
-| Andrea Rossolini | 2025-XX-XX |
-| Renata Ribeiro   | 2025-XX-XX |
-| Romulo Barbosa   | 2025-XX-XX |
+| Andrea Rossolini | 2025-02-17 |
+| Jesus Acuna      | 2025-02-17 |
+| Renata Ribeiro   | 2025-02-17 |
+| Romulo Barbosa   | 2025-02-17 |
 | Serhii Spitsyn   | 2025-02-02 |
 
 ---

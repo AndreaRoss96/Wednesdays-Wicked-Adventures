@@ -21,6 +21,11 @@ python -m pytest --cov=app --cov-report=term-missing
 # Verbose mode
 python -m pytest -v
 
+# Specific test type
+python -m pytest tests/unit/
+python -m pytest tests/integration/
+python -m pytest tests/smoke/
+
 # Specific test file
 python -m pytest tests/unit/test_models.py
 ```
@@ -32,59 +37,103 @@ python -m pytest tests/unit/test_models.py
 [pytest]
 testpaths = tests
 python_files = test_*.py
+python_classes = Test*
 python_functions = test_*
-addopts = -v --tb=short
+addopts = -v --tb=short --strict-markers --cov=main --cov-report=html --cov-report=term-missing --cov-report=xml
+markers =
+    unit: Unit tests
+    integration: Integration tests
+    smoke: Smoke tests
+    slow: Slow running tests
 ```
 
 ### Test Structure
 
 ```
 flask_app/src/tests/
-├── conftest.py              # Shared fixtures
+├── conftest.py                # Shared fixtures and test data
+├── unit/
+│   ├── test_auth.py           # Password hashing, role checks
+│   ├── test_models.py         # User, Role, Park, Booking, Message models
+│   └── test_seed_data.py      # Database seeding verification
 ├── integration/
-│   ├── test_flow.py         # End-to-end flow tests
-│   ├── test_login_routes.py # Login route tests
-│   └── test_main_routes.py  # Main route tests
-└── unit/
-    ├── test_auth.py         # Authentication tests
-    ├── test_models.py       # Model tests
-    └── test_seed_data.py    # Seed data tests
-
-tests/
-└── test_smoke.py            # Smoke tests for CI
+│   ├── test_flow.py           # End-to-end user flows
+│   ├── test_login_routes.py   # Login, register, forgot password, logout
+│   └── test_main_routes.py    # Index, park detail, profile, booking, contact
+└── smoke/
+    └── test_smoke.py          # App startup, public routes, error handling
 ```
 
 ### Test Types
 
-| Type | Purpose | Location |
-|------|---------|----------|
-| Smoke Tests | Verify CI pipeline works | `tests/test_smoke.py` |
-| Unit Tests | Test individual functions | `flask_app/src/tests/unit/` |
-| Integration Tests | Test component interactions | `flask_app/src/tests/integration/` |
+| Type | Purpose | Location | CI Phase |
+|------|---------|----------|----------|
+| **Smoke** | Verify app starts and basic routes work | `tests/smoke/` | Phase 6 (standalone) |
+| **Unit** | Test individual model methods and functions | `tests/unit/` | Phase 7 (with coverage) |
+| **Integration** | Test route logic, form submissions, DB operations | `tests/integration/` | Phase 7 (with coverage) |
 
-### Writing Tests
+### Test Fixtures (conftest.py)
 
-Example test structure:
-```python
-import pytest
-from app import create_app
+| Fixture | Scope | Purpose |
+|---------|-------|---------|
+| `app` | function | Creates Flask app with TestingConfig, seeds test data, cleanup |
+| `client` | function | Flask test client for HTTP requests |
+| `runner` | function | CLI runner for command testing |
+| `db_session` | function | Database session with transaction rollback |
+| `authenticated_client` | function | Client logged in as `test@example.com` |
 
-def test_app_creates():
-    """Test that app factory creates application."""
-    app = create_app()
-    assert app is not None
+**Test data seeded by fixtures:**
 
-def test_homepage_loads(client):
-    """Test homepage returns 200."""
-    response = client.get('/')
-    assert response.status_code == 200
+| Entity | Details |
+|--------|---------|
+| Roles | user, admin |
+| Test User | test@example.com / password123 |
+| Admin User | admin@example.com / admin123 |
+| Parks | 3 test parks (Leprechaun, Paddy, Haunted House) |
+
+### What Each Test File Covers
+
+**Unit Tests:**
+
+| File | Tests |
+|------|-------|
+| `test_auth.py` | Password hashing with PBKDF2, role assignment, `has_role()` method |
+| `test_models.py` | CRUD for User, Role, Park, Booking, Message; relationships; `to_json()` |
+| `test_seed_data.py` | Seed data creates correct roles, parks, admin users |
+
+**Integration Tests:**
+
+| File | Tests |
+|------|-------|
+| `test_login_routes.py` | Login form, login POST, registration, forgot password, logout |
+| `test_main_routes.py` | Homepage, park detail, profile, new booking, contact form, 404 |
+| `test_flow.py` | Full user journeys: register → login → book → view bookings |
+
+**Smoke Tests:**
+
+| File | Tests |
+|------|-------|
+| `test_smoke.py` | App initialization, public routes respond, auth redirects work, contact form, error handling, template rendering, DB integrity |
+
+### CI Pipeline Integration
+
+**Phase 6 — Smoke Tests** (run first, fast feedback):
+```bash
+python -m pytest tests/smoke/ -v --tb=short --color=yes
 ```
+
+**Phase 7 — Full Test Suite** (with coverage):
+```bash
+python -m pytest --cov=app --cov-report=xml --cov-report=term-missing
+```
+
+Coverage XML is sent to SonarCloud in Phase 8.
 
 ## Code Quality
 
 ### Flake8
 
-Flake8 is used for Python code linting.
+Flake8 is used for Python code linting (Phase 4 of CI Pipeline).
 
 **Running locally:**
 ```bash
@@ -93,10 +142,20 @@ flake8 . --max-line-length=127 --exclude=venv,__pycache__
 ```
 
 **CI Configuration:**
-- Critical errors (E9, F63, F7, F82): Blocking
-- Style warnings: Non-blocking
-- Max complexity: 10
-- Max line length: 127
+
+| Check Type | Rules | Blocking |
+|------------|-------|----------|
+| Critical errors | E9, F63, F7, F82 | **Yes** |
+| Style warnings | max-complexity=10, max-line-length=127 | No |
+
+**Critical checks explained:**
+
+| Code | Meaning |
+|------|---------|
+| E9 | Runtime errors (syntax, IO) |
+| F63 | Invalid test assertions |
+| F7 | Syntax errors in code |
+| F82 | Undefined names |
 
 ### SonarCloud
 
@@ -114,19 +173,15 @@ SonarCloud performs static code analysis for:
 ```properties
 sonar.projectKey=AndreaRoss96_Wednesdays-Wicked-Adventures
 sonar.organization=andreaross96
+sonar.sources=main/app
+sonar.tests=tests
+sonar.python.version=3.11
+sonar.python.coverage.reportPaths=coverage.xml
 ```
 
-**Quality Gates:**
+**Exclusions:** `venv`, `__pycache__`, `migrations`, `static`, `templates`
 
-| Metric | Threshold |
-|--------|-----------|
-| Coverage | Configurable |
-| Duplications | < 3% |
-| Maintainability Rating | A |
-| Reliability Rating | A |
-| Security Rating | A |
-
-*Note: Quality gate is currently disabled due to 403 error.*
+*Note: Quality gate wait is currently disabled in pipeline (`sonar.qualitygate.wait=false`).*
 
 ### Interpreting SonarCloud Results
 
@@ -177,7 +232,8 @@ To demonstrate quality processes:
 
 2. **CI Test Results**
    - Green checkmark on PR
-   - Test output logs showing pytest results
+   - Phase 6: Smoke tests output
+   - Phase 7: Full test results with coverage percentage
 
 3. **Coverage Report**
    - Shows percentage of code tested
