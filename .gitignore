@@ -216,4 +216,4 @@ __marimo__/
 wicked-docker-key.pem
 
 # JAcuna .yaml
-.github/workflow/docker-deploy.yaml
+.github/workflows/docker-deploy.yaml
