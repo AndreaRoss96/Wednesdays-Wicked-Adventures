@@ -371,20 +371,6 @@ jobs:
           password: ${{ secrets.DOCKER_HUB_ACCESS_TOKEN }}
 
       # ======================================================
-      # STEP 4: BUILD AND PUSH DOCKER IMAGE
-      # ======================================================
-      - name: Build and push Docker image
-        uses: docker/build-push-action@v5
-        with:
-          context: ./flask_app/src
-          push: true
-          tags: |
-            ${{ secrets.DOCKER_HUB_USERNAME }}/${{ env.DOCKER_IMAGE_NAME }}:latest
-            ${{ secrets.DOCKER_HUB_USERNAME }}/${{ env.DOCKER_IMAGE_NAME }}:${{ github.sha }}
-          cache-from: type=registry,ref=${{ secrets.DOCKER_HUB_USERNAME }}/${{ env.DOCKER_IMAGE_NAME }}:buildcache
-          cache-to: type=registry,ref=${{ secrets.DOCKER_HUB_USERNAME }}/${{ env.DOCKER_IMAGE_NAME }}:buildcache,mode=max
-
-      # ======================================================
       # PHASE 1: BUILD DOCKER IMAGE
       # ======================================================
       - name: Build Docker Image
@@ -790,7 +776,22 @@ jobs:
           retention-days: 7
 
       # ======================================================
-      # PHASE 7: CLEANUP -> REPLACED BY DEPLOYEMENT JOB
+      # PHASE 7: PUSH TO DOCKER HUB (after all tests pass)
+      # ======================================================
+      - name: Push Docker image to Docker Hub
+        id: push-phase
+        uses: docker/build-push-action@v5
+        with:
+          context: ./flask_app/src
+          push: true
+          tags: |
+            ${{ secrets.DOCKER_HUB_USERNAME }}/${{ env.DOCKER_IMAGE_NAME }}:latest
+            ${{ secrets.DOCKER_HUB_USERNAME }}/${{ env.DOCKER_IMAGE_NAME }}:${{ github.sha }}
+          cache-from: type=registry,ref=${{ secrets.DOCKER_HUB_USERNAME }}/${{ env.DOCKER_IMAGE_NAME }}:buildcache
+          cache-to: type=registry,ref=${{ secrets.DOCKER_HUB_USERNAME }}/${{ env.DOCKER_IMAGE_NAME }}:buildcache,mode=max
+
+      # ======================================================
+      # PHASE 8: CLEANUP -> REPLACED BY DEPLOYEMENT JOB
       # ======================================================
 
       #      - name: Cleanup Docker Container
@@ -822,7 +823,7 @@ jobs:
       - name: Docker Job Summary
         if: always()
         run: |
-          echo "PHASE 6: DOCKER JOB SUMMARY"
+          echo "PHASE 8: DOCKER JOB SUMMARY"
           echo "==========================="
           echo ""
           echo "Results:"
@@ -831,6 +832,7 @@ jobs:
           echo "Trivy Scan...........: ${{ steps.trivy-phase.conclusion || 'unknown' }}"
           echo "Container Test.......: ${{ steps.test-phase.conclusion || 'unknown' }}"
           echo "DAST Security Scan...: ${{ steps.dast-phase.conclusion || 'unknown' }}"
+          echo "Push to Docker Hub...: ${{ steps.push-phase.conclusion || 'unknown' }}"
           echo ""
           echo "Overall Status.......: ${{ job.status }}"
           echo ""
@@ -841,9 +843,11 @@ jobs:
             echo "Trivy scan completed"
             echo "Container tested with secrets"
             echo "DAST scan completed"
+            echo "Image pushed to Docker Hub"
             echo "Ready for deployment"
           else
             echo "Docker job failed"
+            echo "Image was NOT pushed to Docker Hub"
           fi
 
           echo ""
