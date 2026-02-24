@@ -851,6 +851,9 @@ jobs:
           echo "DOCKER JOB EXECUTION COMPLETE"
           echo "========================================"
 
+  # ============================================================
+  # JOB : DEPLOY TO EC2
+  # ============================================================
   deploy:
     name: deploy to EC2
     runs-on: ubuntu-latest

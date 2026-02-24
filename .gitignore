@@ -214,3 +214,6 @@ __marimo__/
 *.pem
 *.key
 wicked-docker-key.pem
+
+# JAcuna .yaml
+docker-deploy.yaml
