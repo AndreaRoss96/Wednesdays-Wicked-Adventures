@@ -776,19 +776,41 @@ jobs:
           retention-days: 7
 
       # ======================================================
-      # PHASE 7: PUSH TO DOCKER HUB (after all tests pass)
+      # PHASE 7: PUSH TESTED IMAGE TO DOCKER HUB
       # ======================================================
-      - name: Push Docker image to Docker Hub
+      - name: Push tested Docker image to Docker Hub
         id: push-phase
-        uses: docker/build-push-action@v5
-        with:
-          context: ./flask_app/src
-          push: true
-          tags: |
-            ${{ secrets.DOCKER_HUB_USERNAME }}/${{ env.DOCKER_IMAGE_NAME }}:latest
-            ${{ secrets.DOCKER_HUB_USERNAME }}/${{ env.DOCKER_IMAGE_NAME }}:${{ github.sha }}
-          cache-from: type=registry,ref=${{ secrets.DOCKER_HUB_USERNAME }}/${{ env.DOCKER_IMAGE_NAME }}:buildcache
-          cache-to: type=registry,ref=${{ secrets.DOCKER_HUB_USERNAME }}/${{ env.DOCKER_IMAGE_NAME }}:buildcache,mode=max
+        run: |
+          echo "PHASE 7: PUSH TESTED IMAGE TO DOCKER HUB"
+          echo "=========================================="
+          echo ""
+
+          # Tag the already-tested image with Docker Hub repo names
+          echo "Tagging tested image for Docker Hub..."
+          docker tag wicked-adventures:latest ${{ secrets.DOCKER_HUB_USERNAME }}/${{ env.DOCKER_IMAGE_NAME }}:latest
+          docker tag wicked-adventures:latest ${{ secrets.DOCKER_HUB_USERNAME }}/${{ env.DOCKER_IMAGE_NAME }}:${{ github.sha }}
+          echo "✓ Images tagged"
+          echo ""
+
+          # Push latest tag
+          echo "Pushing image with 'latest' tag..."
+          docker push ${{ secrets.DOCKER_HUB_USERNAME }}/${{ env.DOCKER_IMAGE_NAME }}:latest
+          echo "✓ Latest tag pushed"
+          echo ""
+
+          # Push commit SHA tag
+          echo "Pushing image with commit SHA tag (${{ github.sha }})..."
+          docker push ${{ secrets.DOCKER_HUB_USERNAME }}/${{ env.DOCKER_IMAGE_NAME }}:${{ github.sha }}
+          echo "✓ Commit SHA tag pushed"
+          echo ""
+
+          # Verify images in Docker Hub
+          echo "Published images:"
+          echo "- ${{ secrets.DOCKER_HUB_USERNAME }}/${{ env.DOCKER_IMAGE_NAME }}:latest"
+          echo "- ${{ secrets.DOCKER_HUB_USERNAME }}/${{ env.DOCKER_IMAGE_NAME }}:${{ github.sha }}"
+          echo ""
+
+          echo "PHASE 7 COMPLETED - TESTED IMAGE PUSHED SUCCESSFULLY"
 
       # ======================================================
       # PHASE 8: CLEANUP -> REPLACED BY DEPLOYEMENT JOB
