@@ -915,10 +915,8 @@ jobs:
 
           # Set variables
           IMAGE_NAME="$IMAGE_NAME"
-          CONTAINER_NAME="wicked-adventures"
 
           echo "Image: \$IMAGE_NAME"
-          echo "Container: \$CONTAINER_NAME"
           echo ""
 
           # Log in to Docker Hub
@@ -932,14 +930,25 @@ jobs:
           echo "✓ Image pulled successfully"
           echo ""
 
-          # Stop existing container
-          echo "Stopping and removing existing container (if any)..."
-          docker ps -q -f name=^${CONTAINER_NAME}$ | xargs -r docker stop
-          docker ps -aq -f name=^${CONTAINER_NAME}$ | xargs -r docker rm -f
-          echo "✓ Old container cleaned up"
+          # Get image digest (last 12 characters of SHA256)
+          echo "Extracting image digest..."
+          IMAGE_DIGEST=\$(docker inspect \$IMAGE_NAME:latest --format='{{index .RepoDigests 0}}' | sed 's/.*sha256:\([a-f0-9]*\).*/\1/' | cut -c1-12)
+          CONTAINER_NAME="wicked-adventures-\${IMAGE_DIGEST}"
+          echo "Container name: \$CONTAINER_NAME"
           echo ""
 
-          # Run new container
+          # Stop and remove old wicked-adventures containers (keep only running one)
+          echo "Cleaning up old containers..."
+          docker ps -a --filter "name=^wicked-adventures-" --format "{{.Names}}" | while read old_container; do
+            if [ ! -z "\$old_container" ]; then
+              echo "  Removing: \$old_container"
+              docker rm -f \$old_container 2>/dev/null || true
+            fi
+          done
+          echo "✓ Old containers cleaned up"
+          echo ""
+
+          # Run new container with unique name
           echo "Running new container..."
           docker run -d \
             --name \$CONTAINER_NAME \
@@ -950,7 +959,12 @@ jobs:
             \$IMAGE_NAME:latest
 
           echo ""
+          echo "✓ Container started successfully"
+          sleep 5
+          echo ""
+
           echo "DOCKER DEPLOYMENT COMPLETED SUCCESSFULLY"
+          echo "Container: \$CONTAINER_NAME"
           echo "Application accessible at:"
           echo "http://${{ secrets.EC2_HOST }}"
           echo ""
