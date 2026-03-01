@@ -14,29 +14,44 @@ The project uses a single comprehensive GitHub Actions workflow (`pipeline.yaml`
 | Pull Request | `main` | Run full pipeline |
 | Manual | Any | `workflow_dispatch` |
 
-## Pipeline Phases
+## Pipeline Jobs
+
+The workflow contains 3 jobs:
 
 ```
-┌─────────────────────────────────────────────────────────┐
-│                    CI/CD Pipeline                        │
-├─────────────────────────────────────────────────────────┤
-│  1. Checkout Code                                        │
-│       ↓                                                  │
-│  2. Setup Python 3.11                                    │
-│       ↓                                                  │
-│  3. Setup Environment (venv + dependencies)              │
-│       ↓                                                  │
-│  4. Code Quality - Flake8 Linting                       │
-│       ↓                                                  │
-│  5. Security Scan (SAST) - Bandit                       │
-│       ↓                                                  │
-│  6. Run Tests - pytest with coverage                    │
-│       ↓                                                  │
-│  7. SonarCloud Analysis                                  │
-│       ↓                                                  │
-│  8. Pipeline Summary                                     │
-└─────────────────────────────────────────────────────────┘
+┌──────────────────────────────────┐
+│   Job 1: CI/CD Pipeline          │
+├──────────────────────────────────┤
+│  3. Setup Environment            │
+│  4. Flake8 Linting               │
+│  5. Bandit (SAST)                │
+│  6. Smoke Tests                  │
+│  7. Full Tests + Coverage        │
+│  8. SonarCloud Analysis          │
+│  9. Pipeline Summary             │
+└───────────────┬──────────────────┘
+                │ (on success)
+┌───────────────▼──────────────────┐
+│   Job 2: Docker Build & Test     │
+├──────────────────────────────────┤
+│  1. Build Docker Image           │
+│  2. Trivy Vulnerability Scan     │
+│  4. Test Docker Container        │
+│  5. DAST Scan (Nuclei)           │
+│  7. Cleanup                      │
+│  8. Docker Job Summary           │
+└──────────────────────────────────┘
+
+┌──────────────────────────────────┐
+│   Job 3: Build Documentation     │  (runs in parallel)
+├──────────────────────────────────┤
+│  Validate docs structure         │
+│  mkdocs build --strict           │
+│  Upload docs-site artifact       │
+└──────────────────────────────────┘
 ```
+
+## Job 1: CI/CD Pipeline Phases
 
 ## Phase Details
 
@@ -66,19 +81,54 @@ The project uses a single comprehensive GitHub Actions workflow (`pipeline.yaml`
 - Generates JSON report (`bandit-results.json`)
 - See [Security](security.md) for details
 
-### Phase 6: Testing
+### Phase 6: Smoke Tests
+
+- Runs `tests/smoke/test_smoke.py` first for fast feedback
+- Verifies app starts and basic routes work
+- Runs before full test suite
+
+### Phase 7: Full Tests + Coverage
 
 - Framework: pytest
-- Coverage: pytest-cov
-- Reports: XML and terminal output
+- Coverage: pytest-cov (`--cov=app --cov-report=xml`)
+- Reports: XML (for SonarCloud) and terminal output
 - Working directory: `flask_app/src`
+- See [Testing & Quality](testing-quality.md) for details
 
-### Phase 7: SonarCloud
+### Phase 8: SonarCloud
 
 - Static code analysis
 - Quality gate (currently disabled due to 403 error)
 - Organization: `andreaross96`
 - Project: `AndreaRoss96_Wednesdays-Wicked-Adventures`
+
+## Job 2: Docker Build & Test
+
+This job runs **after** Job 1 succeeds (`needs: ci-pipeline`).
+
+| Phase | Action | Details |
+|-------|--------|---------|
+| Build Docker Image | Build `wicked-adventures:latest` | Verifies Dockerfile, setup.py, MANIFEST.in |
+| Trivy Scan | Scan image for CVEs | HIGH + CRITICAL severity, artifact: `trivy-reports` |
+| Test Container | Run container, test HTTP | Port 5000, waits 15s, checks response |
+| DAST (Nuclei) | Scan running app | 3 scans: critical vulns, headers, exposed panels |
+| Cleanup | Stop/remove container | Always runs |
+
+**Artifacts produced:**
+- `trivy-reports` — Container vulnerability report (7 days)
+- `dast-reports` — DAST scan results + summary (7 days)
+
+See [Security](security.md) for detailed security tool documentation.
+
+## Job 3: Build Documentation
+
+Runs **in parallel** with other jobs.
+
+| Step | Action |
+|------|--------|
+| Validate structure | Checks `mkdocs.yml`, `docs/`, `docs/index.md` exist |
+| Build docs | `mkdocs build --strict` (fails on broken links) |
+| Upload artifact | `docs-site` (7 days) |
 
 ## Branching Strategy
 
@@ -130,17 +180,32 @@ Example: `feature/SCRUM-42-add-booking-validation`
 
 ### Pipeline Summary
 
-The final phase outputs a summary:
+**Job 1 summary:**
 ```
-Results:
---------
 Setup Environment....: success
 Flake8 Linting.......: success
 Security Scan........: success
 Test Execution.......: success
-
 Overall Status.......: success
 ```
+
+**Job 2 summary:**
+```
+Docker Build.........: success
+Trivy Scan...........: success
+Container Test.......: success
+DAST Security Scan...: success
+Overall Status.......: success
+```
+
+### Artifacts
+
+| Artifact | Source | Retention |
+|----------|--------|-----------|
+| `security-reports` | Bandit JSON report | Default |
+| `trivy-reports` | Trivy JSON + table | 7 days |
+| `dast-reports` | Nuclei scans + summary | 7 days |
+| `docs-site` | Built documentation HTML | 7 days |
 
 ## Pull Request Process
 
