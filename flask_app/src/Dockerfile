@@ -5,6 +5,9 @@ WORKDIR /app
 # Install system dependencies
 RUN apt-get update && apt-get install -y \
     gcc \
+    && apt-get upgrade -y \
+    && apt-get remove --purge -y linux-libc-dev \
+    && apt-get autoremove -y \
     && rm -rf /var/lib/apt/lists/*
 
 # Copy requirements and install dependencies
