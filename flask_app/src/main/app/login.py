@@ -7,7 +7,6 @@ from . import db
 auth_login = Blueprint('login', __name__)
 
 @auth_login.route('/login', methods=['GET'])
-# @auth_login.route('/login')
 def login():
     return render_template('login.html')
 
@@ -53,7 +52,6 @@ def forgot_password_submit():
         return redirect(url_for('login.forgot_password_form'))
 
 @auth_login.route('/register', methods=['GET'])
-#@auth_login.route('/register')
 def register():
     return render_template('register.html')
 
@@ -82,7 +80,6 @@ def register_post():
     return redirect(url_for('login.login'))
 
 @auth_login.route('/logout', methods=['GET'])
-#@auth_login.route('/logout')
 @login_required
 def logout():
     logout_user()
