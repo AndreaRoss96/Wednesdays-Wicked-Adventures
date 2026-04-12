@@ -888,6 +888,7 @@ jobs:
     env:
       SECRET_KEY: ${{ secrets.SECRET_KEY }}
       SEED_ADMIN_PASSWORD: ${{ secrets.SEED_ADMIN_PASSWORD }}
+      FLASK_ENV: development
 
     steps:
       - name: Checkout code
@@ -953,7 +954,7 @@ jobs:
           docker run -d \
             --name \$CONTAINER_NAME \
             -p 80:5000 \
-            -e FLASK_ENV=production \
+            -e FLASK_ENV=development \
             -e SECRET_KEY="${{ secrets.SECRET_KEY }}" \
             -e SEED_ADMIN_PASSWORD="${{ secrets.SEED_ADMIN_PASSWORD }}" \
             \$IMAGE_NAME:latest
