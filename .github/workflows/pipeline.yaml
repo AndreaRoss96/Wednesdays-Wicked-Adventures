@@ -888,7 +888,6 @@ jobs:
     env:
       SECRET_KEY: ${{ secrets.SECRET_KEY }}
       SEED_ADMIN_PASSWORD: ${{ secrets.SEED_ADMIN_PASSWORD }}
-      FLASK_ENV: development
 
     steps:
       - name: Checkout code
