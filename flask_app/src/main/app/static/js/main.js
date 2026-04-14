@@ -70,7 +70,7 @@ document.addEventListener("DOMContentLoaded", function () {
       return {
         isValid: false,
         field: "name",
-        message: "CI/CD DEMO:Name must be at least 3 characters long",
+        message: "CI/CD DEMO TEST: Name must be at least 3 characters long",
       };
     }
 
